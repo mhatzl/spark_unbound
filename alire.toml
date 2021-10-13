@@ -1,0 +1,7 @@
+name = "spark_unbound"
+description = "Shiny new project"
+version = "0.0.0"
+
+authors = ["Manuel Hatzl"]
+maintainers = ["Manuel Hatzl <hatzlmanuel@outlook.com>"]
+maintainers-logins = ["mhatzl"]
