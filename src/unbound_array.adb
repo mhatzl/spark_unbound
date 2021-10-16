@@ -16,31 +16,33 @@ package body Unbound_Array with SPARK_Mode is
    end To_Unbound_Array;
     
    
-   function "=" (Left, Right : Unbound_Array_Record) return Boolean is
+   function "=" (Left, Right : Unbound_Array_Record) return Boolean
+   is
    begin
       if Left.Arr = null and then Right.Arr = null then
          return True;
       end if;
    
-      if (Left.Arr /= null or else Right.Arr /= null) then
+      if (Left.Arr = null and then Right.Arr /= null) or else (Left.Arr /= null and then Right.Arr = null) then
          return False;
       end if;
-   
+      
       if (Last_Index(Left) /= Last_Index(Right)) or else (First_Index(Left) /= First_Index(Right)) then
          return False;
       end if;
    
-      for I in Last_Index(Left) .. First_Index(Left) loop
+      for I in First_Index(Left) .. Last_Index(Left) loop
          if Element(Left, I) /= Element(Right, I) then
             return False;
          end if;
-         pragma Loop_Invariant (for all P in First_Index(Left) .. I => Left.Arr.all(P) = Right.Arr.all(P));
+         pragma Loop_Invariant (for all P in First_Index(Left) .. I => Element(Left, P) = Element(Right, P));
       end loop;
-   
+      
       return True;
    end "=";
 
-   function Capacity (Self : Unbound_Array_Record) return Count_Type is
+   function Capacity (Self : Unbound_Array_Record) return Count_Type
+   is
    begin
       if Self.Arr = null then
          return Count_Type'First;
@@ -54,7 +56,8 @@ package body Unbound_Array with SPARK_Mode is
    --     null;
    --  end Reserve_Capacity;
 
-   function Length (Self : Unbound_Array_Record) return Count_Type is
+   function Length (Self : Unbound_Array_Record) return Count_Type
+   is
    begin
       if Last_Index(Self) = No_Index then
          return Count_Type'First;
@@ -63,7 +66,8 @@ package body Unbound_Array with SPARK_Mode is
       return Count_Type(Last_Index(Self) - First_Index(Self)) + 1; -- Last = First leaves room for 1 element
    end Length;
 
-   function Is_Empty (Self : Unbound_Array_Record) return Boolean is
+   function Is_Empty (Self : Unbound_Array_Record) return Boolean
+   is
    begin
       return Last_Index(Self) = No_Index;      
    end Is_Empty;
@@ -74,12 +78,14 @@ package body Unbound_Array with SPARK_Mode is
       Array_Alloc.Free(Self.Arr);
    end Clear;
    
-   function Element (Self : Unbound_Array_Record; Index : Index_Type) return Element_Type is
+   function Element (Self : Unbound_Array_Record; Index : Index_Type) return Element_Type
+   is
    begin
       return Self.Arr.all(Index);
    end Element;
    
-   procedure Replace_Element (Self : in out Unbound_Array_Record; Index : in Index_Type; New_Item : in Element_Type) is
+   procedure Replace_Element (Self : in out Unbound_Array_Record; Index : in Index_Type; New_Item : in Element_Type)
+   is
    begin
       Self.Arr.all(Index) := New_Item;
    end Replace_Element;
@@ -100,7 +106,7 @@ package body Unbound_Array with SPARK_Mode is
       Target.Arr := null;
       
       if Source.Arr = null then
-         -- pragma Assert (Source = Target); -- somehow fails even if Target.Arr = null and Source.Arr = null would count as equal
+         pragma Assert (Source = Target); -- somehow fails even if Target.Arr = null and Source.Arr = null would count as equal
          Success := True;
          return;
       end if;
@@ -115,7 +121,7 @@ package body Unbound_Array with SPARK_Mode is
             Target.Arr.all(I) := Source.Arr.all(I);
             pragma Loop_Invariant (for all P in First_Index(Source) .. I => Target.Arr.all(P) = Source.Arr.all(P));
          end loop;
-         --  pragma Assert (Source = Target); -- somehow fails even if "=" Post contract is the same
+         pragma Assert (Source = Target); -- somehow fails even if "=" Post contract is the same
          
          Success := True;
       end if;
@@ -204,12 +210,14 @@ package body Unbound_Array with SPARK_Mode is
    end;
       
 
-   function First_Element (Self : Unbound_Array_Record) return Element_Type is
+   function First_Element (Self : Unbound_Array_Record) return Element_Type
+   is
    begin
       return Self.Arr.all(First_Index(Self));
    end First_Element;
 
-   function First_Index (Self : Unbound_Array_Record) return Index_Type is
+   function First_Index (Self : Unbound_Array_Record) return Index_Type
+   is
    begin
       if Self.Arr = null then
          return Index_Type'First;
@@ -218,13 +226,15 @@ package body Unbound_Array with SPARK_Mode is
       return Self.Arr.all'First;
    end First_Index;
         
-   function Last_Index (Self : Unbound_Array_Record) return Extended_Index is
+   function Last_Index (Self : Unbound_Array_Record) return Extended_Index
+   is
    begin
       return Self.Last;
    end Last_Index;
    
    
-   function Last_Element (Self : Unbound_Array_Record) return Element_Type is
+   function Last_Element (Self : Unbound_Array_Record) return Element_Type
+   is
    begin
       return Self.Arr.all(Last_Index(Self));
    end Last_Element;
@@ -232,7 +242,8 @@ package body Unbound_Array with SPARK_Mode is
    function Find_Index (Self : Unbound_Array_Record;
                         Item      : Element_Type;
                         Index     : Index_Type := Index_Type'First)
-                        return Extended_Index is
+                        return Extended_Index
+   is
    begin
       for I in First_Index(Self) .. Index loop      
          if Element(Self, I) = Item then
@@ -244,7 +255,8 @@ package body Unbound_Array with SPARK_Mode is
       return No_Index;
    end Find_Index;
      
-   function Contains (Self : Unbound_Array_Record; Item : Element_Type) return Boolean is
+   function Contains (Self : Unbound_Array_Record; Item : Element_Type) return Boolean
+   is
    begin
       if Self.Arr = null or else Self.Last = No_Index then
          return False;
@@ -259,7 +271,7 @@ package body Unbound_Array with SPARK_Mode is
    end Contains;
 
    
-   -- Private --------------------------------
+   -- Private -------------------------------------------------------------------------------
    
    --  procedure Shrink (Self : Unbound_Array_Record; Cap : Positive) is
    --  begin
@@ -267,9 +279,10 @@ package body Unbound_Array with SPARK_Mode is
    --  end Shrink;
    
    
-   -- Ghost --------------------------------
+   -- Ghost ----------------------------------------------------------------------------------
    
-   function Ghost_Arr_Length (Self : Array_Acc) return Count_Type is
+   function Ghost_Arr_Length (Self : Array_Acc) return Count_Type
+   is
    begin
       if Self = null then
          return Count_Type'First;
@@ -277,7 +290,18 @@ package body Unbound_Array with SPARK_Mode is
       
       return Self.all'Length;
    end Ghost_Arr_Length;
+      
    
-
+   function Ghost_Arr_Equals (Smaller, Bigger : Array_Type; First, Last : Index_Type) return Boolean
+   is
+   begin
+      for I in First .. Last loop
+         if Smaller(I) /= Bigger(I) then
+            return False;
+         end if;
+         pragma Loop_Invariant (for all P in First .. I => Smaller(P) = Bigger(P));
+      end loop;
+      return True;
+   end Ghost_Arr_Equals;
    
 end Unbound_Array;

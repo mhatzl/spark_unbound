@@ -18,6 +18,9 @@ package Unbound_Array with SPARK_Mode is
    type Array_Type is array(Index_Type range <>) of Element_Type;
    type Array_Acc is access Array_Type;
    
+   
+   -- Note: Having Last and Arr of some private type would be better, but then Pre and Post contracts get really messy
+   
    type Unbound_Array_Record is record
       Last : Extended_Index := No_Index;
       Arr : Array_Acc := null;
@@ -25,23 +28,8 @@ package Unbound_Array with SPARK_Mode is
      with Dynamic_Predicate => (if Arr = null then Last = No_Index else Arr.all'First = Index_Type'First and then Arr.all'First <= Arr.all'Last
                                 and then (if Arr.all'Length <= 0 then Last = No_Index else Last <= Arr.all'Last));
    
-   
-   -- Ghost ---------------------------------------------
-   
-   function Ghost_Arr_Length (Self : Array_Acc) return Count_Type with Ghost,
-     Post => ((if Self = null then Ghost_Arr_Length'Result = Count_Type'First else Ghost_Arr_Length'Result = Self.all'Length));
-   
-   
-   -- Procdeures/Functions ------------------------------
-   
-   function First_Index (Self : Unbound_Array_Record) return Index_Type
-     with Inline, Post => (if Self.Arr = null then First_Index'Result = Index_Type'First else First_Index'Result = Self.Arr.all'First);
-   
-   
-   function Capacity (Self : Unbound_Array_Record) return Count_Type
-     with Post => (if Self.Arr /= null then Capacity'Result = Ghost_Arr_Length(Self.Arr) else Capacity'Result = Count_Type'First);
-   
-   -- Unbound_Array creations --------------------------------------------
+
+   -- Unbound_Array creations ------------------------------------------------------------------------------
    
    -- Sets up a new unbound array with cap as capacity
    function To_Unbound_Array (Cap : Positive; Default_Item : Element_Type) return Unbound_Array_Record
@@ -51,12 +39,25 @@ package Unbound_Array with SPARK_Mode is
                     and then (for all I in To_Unbound_Array'Result.Arr.all'First .. To_Unbound_Array'Result.Arr.all'Last => To_Unbound_Array'Result.Arr.all(I) = Default_Item))
                     else Capacity(To_Unbound_Array'Result) = Count_Type'First);
    
+   
+   -- Procdeures/Functions ----------------------------------------------------------------------------------
+   
    function "=" (Left, Right : Unbound_Array_Record) return Boolean
      with Global => null, Post => (if "="'Result then (Left.Arr = null and then Right.Arr = null)
                                    or else (Last_Index(Left) = Last_Index(Right) and then First_Index(Left) = First_Index(Right)
                                    and then (Left.Arr /= null and then Right.Arr /= null 
                                      and then (for all I in First_Index(Left) .. Last_Index(Left)
-                                       => Element(Left,I) = Element(Right,I)))));          
+                                         => Element(Left,I) = Element(Right,I))))
+                                     else ((Left.Arr = null and then Right.Arr /= null)
+                                   or else (Left.Arr /= null and then Right.Arr = null)
+                                   or else Last_Index(Left) /= Last_Index(Right)
+                                   or else First_Index(Left) /= First_Index(Right)
+                                  or else (for some I in First_Index(Left) .. Last_Index(Left) => Element(Left,I) /= Element(Right,I))));          
+   
+   
+   function Capacity (Self : Unbound_Array_Record) return Count_Type
+     with Post => (if Self.Arr /= null then Capacity'Result = Ghost_Arr_Length(Self.Arr) else Capacity'Result = Count_Type'First);
+   
    
    --  procedure Reserve_Capacity (Self : in out Unbound_Array_Record; Cap : in Count_Type; Success: out Boolean)
    --    with Pre => Cap > Capacity(Self),
@@ -90,13 +91,9 @@ package Unbound_Array with SPARK_Mode is
 
    procedure Copy (Target : out Unbound_Array_Record;
                    Source : Unbound_Array_Record; Success: out Boolean)
-     with Post => (if Success then (Target.Arr = null and then Source.Arr = null)
-                                   or else (Capacity(Target) = Capacity(Source)
-                                   and then Last_Index(Target) = Last_Index(Source) and then First_Index(Target) = First_Index(Source)
-                                   and then (Target.Arr /= null and then Source.Arr /= null 
-                                     and then (for all I in First_Index(Target) .. Last_Index(Target)
-                                       => Element(Target,I) = Element(Source,I)))) else (Target.Last = No_Index and then Target.Arr = null));
-   
+     with Post => (if Success then Target = Source and then Capacity(Target) = Capacity(Source)
+                     else (Target.Last = No_Index and then Target.Arr = null));
+
    -- mhatzl
    --  procedure Move (Target : in out Unbound_Array_Record;
    --                  Source : in out Unbound_Array_Record; Success: out Boolean)
@@ -144,9 +141,11 @@ package Unbound_Array with SPARK_Mode is
      with Pre => Self.Arr /= null and then Last_Index(Self) /= No_Index 
      and then Length(Self) >= Count_Type(Count)
      and then (Extended_Index(Count) - 1) <= (Last_Index(Self) - Extended_Index(First_Index(Self))),
-     Post => Self.Last = Self.Last'Old - Extended_Index(Count);
+     Post => Self.Last = Self.Last'Old - Extended_Index(Count) 
+     and then (if Last_Index(Self) > No_Index then
+                 Ghost_Arr_Equals(Bigger => Self.Arr.all'Old, Smaller => Self.Arr.all, First => First_Index(Self), Last => Last_Index(Self))
+               else Self.Last'Old = No_Index + Extended_Index(Count));
       
-   
    
    --  procedure Reverse_Elements (Self : in out Unbound_Array_Record);
    --  
@@ -154,6 +153,9 @@ package Unbound_Array with SPARK_Mode is
    --                  I, J      : in     Index_Type);
 
  
+   function First_Index (Self : Unbound_Array_Record) return Index_Type
+     with Inline, Post => (if Self.Arr = null then First_Index'Result = Index_Type'First else First_Index'Result = Self.Arr.all'First);
+   
    function First_Element (Self : Unbound_Array_Record) return Element_Type
      with Pre => Self.Arr /= null and then Self.Last /= No_Index and then Length(Self) > Count_Type'First,
    Post => First_Element'Result = Self.Arr.all(First_Index(Self));
@@ -208,10 +210,26 @@ package Unbound_Array with SPARK_Mode is
    --
    --  end Generic_Sorting;
    
--- Private ------------------------------------------------
+   
+-- Ghost --------------------------------------------------------------------------------------------------------------
+   
+   function Ghost_Arr_Length (Self : Array_Acc) return Count_Type with Ghost,
+     Post => ((if Self = null then Ghost_Arr_Length'Result = Count_Type'First else Ghost_Arr_Length'Result = Self.all'Length));
+   
+   
+   function Ghost_Arr_Equals (Smaller, Bigger : Array_Type; First, Last : Index_Type) return Boolean 
+     with Ghost,
+     Pre => Bigger'First <= Smaller'First and then Bigger'Last >= Smaller'Last
+     and then Smaller'First <= First and then Last <= Smaller'Last,
+     Post => (if Ghost_Arr_Equals'Result then (for all I in First .. Last => Smaller(I) = Bigger(I))
+                else (for some I in First .. Last => Smaller(I) /= Bigger(I)));
+   
+   
+-- Private -------------------------------------------------------------------------------------------------------------
 private
    
    package Array_Alloc is new Safe_Alloc.Arrays(Element_Type => Element_Type, Index_Type => Index_Type, Array_Type => Array_Type, Array_Type_Acc => Array_Acc);
+
    
    --  procedure Shrink (Self : Unbound_Array_Record; Cap : Positive);
    
