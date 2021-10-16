@@ -27,7 +27,8 @@ package Safe_Alloc with SPARK_Mode is
       
       -- Tries to allocate array of `Element_Type` with range from `First` to `Last` on the heap
       -- @Returns `null` if `Storage_Error` was raised
-      function Alloc (First, Last : Index_Type) return Array_Type_Acc;
+      function Alloc (First, Last : Index_Type) return Array_Type_Acc
+        with Pre => Last >= First, Post => (if Alloc'Result /= null then (Alloc'Result.all'First = First and then Alloc'Result.all'Last = Last));
    
       -- Frees the allocated array from the heap
       procedure Free (Pointer: in out Array_Type_Acc)
