@@ -27,6 +27,7 @@ package body Unbound_Array with SPARK_Mode is
          if Element(Left, I) /= Element(Right, I) then
             return False;
          end if;
+         pragma Loop_Invariant (for all P in First_Index(Left) .. I => Left.Arr.all(P) = Right.Arr.all(P));
       end loop;
    
       return True;
@@ -52,7 +53,7 @@ package body Unbound_Array with SPARK_Mode is
          return Count_Type'First;
       end if;
       
-      return Count_Type(Last_Index(Self) - First_Index(Self));
+      return Count_Type(Last_Index(Self) - First_Index(Self)) + 1; -- Last = First leaves room for 1 element
    end Length;
 
    function Is_Empty (Self : Unbound_Array_Record) return Boolean is
@@ -92,25 +93,103 @@ package body Unbound_Array with SPARK_Mode is
    --     Process.all(Self.Arr.all(Index));
    --  end Update_Element;
 
-   --  procedure Copy (Target : out Unbound_Array_Record;
-   --                  Source : Unbound_Array_Record; Success: out Boolean)
-   --  is
-   --     Arr_Acc : Array_Acc := Array_Alloc.Alloc(First_Index, Last_Index(Source));
-   --  begin
-   --     Target.Last := Source.Last;
-   --     Target.Arr := Arr_Acc;
-   --  
-   --     if Target.Arr = null then
-   --        Success := False;
-   --     else
-   --        for I in First_Index .. Last_Index(Source) loop
-   --           Target.Arr.all(I) := Source.Arr.all(I);
-   --        end loop;
-   --        Success := True;
-   --     end if;
-   --  end Copy;
+   procedure Copy (Target : out Unbound_Array_Record;
+                   Source : Unbound_Array_Record; Success: out Boolean)
+   is
+   begin
+      Target.Last := No_Index; 
+      Target.Arr := null;
+      
+      if Source.Arr = null then
+         -- pragma Assert (Source = Target); -- somehow fails even if Target.Arr = null and Source.Arr = null would count as equal
+         Success := True;
+         return;
+      end if;
+             
+      Target.Arr := Array_Alloc.Alloc(Source.Arr.all'First, Source.Arr.all'Last);
+   
+      if Target.Arr = null then
+         Success := False;
+      else
+         Target.Last := Source.Last;
+         for I in First_Index(Source) .. Last_Index(Source) loop
+            Target.Arr.all(I) := Source.Arr.all(I);
+            pragma Loop_Invariant (for all P in First_Index(Source) .. I => Target.Arr.all(P) = Source.Arr.all(P));
+         end loop;
+         --  pragma Assert (Source = Target); -- somehow fails even if "=" Post contract is the same
+         
+         Success := True;
+      end if;
+   end Copy;
    
    
+   procedure Append (Self : in out Unbound_Array_Record;
+                     New_Item  : in     Element_Type; Success: out Boolean)
+   is
+   begin
+      if Last_Index(Self) < Self.Arr.all'Last then
+         Self.Last := Self.Last + 1;
+         Self.Arr.all(Last_Index(Self)) := New_Item;
+         Success := True;
+      elsif Capacity(Self) < Index_Type'Range_Length then
+         declare
+            Added_Capacity : Index_Type := Index_Type(Capacity(Self)); -- Try to double array capacity for O(Log(N))
+            Ghost_Added_Capactiy : Index_Type;
+         begin
+            while ((Index_Type'Last - Added_Capacity) < Index_Type(Capacity(Self) + 1)) and then Added_Capacity > Index_Type'First loop
+               Ghost_Added_Capactiy := Added_Capacity;
+               Added_Capacity := Added_Capacity - 1;
+               
+               pragma Loop_Invariant (Added_Capacity = Ghost_Added_Capactiy - 1);
+            end loop;
+            
+            declare
+               New_Max_Last : Index_Type := Index_Type(Capacity(Self)) + Added_Capacity;
+               Ghost_New_Max_Last : Index_Type;
+               Arr_Acc : Array_Acc := Array_Alloc.Alloc(Self.Arr.all'First, New_Max_Last);
+               Tmp_Last : Extended_Index := Self.Last;
+            begin
+               while Arr_Acc = null and then New_Max_Last > Index_Type(Capacity(Self)) and then New_Max_Last > (Last_Index(Self) + 1) loop
+                  Ghost_New_Max_Last := New_Max_Last;                  
+                  New_Max_Last := New_Max_Last - 1;
+                  Arr_Acc := Array_Alloc.Alloc(Self.Arr.all'First, New_Max_Last);
+                  
+                  pragma Loop_Invariant (New_Max_Last = Ghost_New_Max_Last - 1);
+                  pragma Loop_Invariant (Tmp_Last < New_Max_Last);
+                  pragma Loop_Invariant (if Arr_Acc /= null then Arr_Acc.all'Last >= Arr_Acc.all'First);
+                  pragma Loop_Invariant (if Arr_Acc /= null then Arr_Acc.all'First = Self.Arr.all'First);
+                  pragma Loop_Invariant (if Arr_Acc /= null then Arr_Acc.all'Last = New_Max_Last);
+                  pragma Loop_Invariant (if Arr_Acc /= null then Arr_Acc.all'Last >= Last_Index(Self));
+               end loop;
+               
+               if Arr_Acc = null then
+                  Success := False;
+               else
+                  for I in First_Index(Self) .. Last_Index(Self) loop
+                     Arr_Acc.all(I) := Self.Arr.all(I);
+                  end loop;
+                  Self.Last := No_Index;
+                  Array_Alloc.Free(Self.Arr);
+                  if Self.Arr = null and then Self.Last = No_Index then
+                     Self.Arr := Arr_Acc;
+                     if Self.Arr /= null and Tmp_Last < Self.Arr.all'Last then
+                        Self.Last := Tmp_Last + 1;
+                        Self.Arr.all(Last_Index(Self)) := New_Item;
+                        Success := True;
+                     else
+                        raise Program_Error; -- needed so that `Self.Last := No_Index;` is not unused
+                     end if;                     
+                  else
+                     raise Program_Error; -- needed so `Self.Arr` is checked after Free()
+                  end if;
+               end if;
+            end;
+         end;
+      else
+         Success := False;
+      end if;
+   end Append;
+      
    --  procedure Delete (Self : in out Unbound_Array_Record;
    --                    Index     : in     Extended_Index;
    --                    Count     : in     Positive := 1) is
@@ -173,33 +252,6 @@ package body Unbound_Array with SPARK_Mode is
    end Contains;
 
    -- Ghost --------------------------------
-   
-   --  procedure Ghost_Copy (Self : Unbound_Array_Record; Arr : in out Constr_Array) is
-   --  begin
-   --     for I in Self.Arr.all'Range loop
-   --        Arr(I) := Self.Arr.all(I);
-   --     end loop;
-   --  end Ghost_Copy;
-   
-   --  
-   --  function Ghost_Array_Equals_Last (Self : Unbound_Array_Record; Arr : Constr_Array) return Boolean is
-   --  begin
-   --     for I in Self.Arr.all'Range loop
-   --        if Self.Arr.all(I) /= Arr(I) then
-   --           return False;
-   --        end if;
-   --     end loop;
-   --     return True;
-   --  end Ghost_Array_Equals_Last;
-   --  
-   --  
-   --  function Ghost_Equals (Self : Unbound_Array_Record) return Boolean
-   --  is
-   --  begin
-   --     return Ghost_Array_Equals_Last(Self, Ghost_Last_Arr);
-   --  end Ghost_Equals;
-   --  
-
    
    function Ghost_Arr_Length (Self : Array_Acc) return Count_Type is
    begin
