@@ -39,7 +39,7 @@ package body Safe_Alloc with SPARK_Mode is
                return null;
          end;
       end Alloc;
-
+      
       procedure Free (Pointer : in out Array_Type_Acc) is
       begin
          Dealloc (Pointer);

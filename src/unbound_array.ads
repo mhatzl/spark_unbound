@@ -13,6 +13,7 @@ package Unbound_Array with SPARK_Mode is
        Index_Type'First-1 .. Index_Type'Min (Index_Type'Base'Last - 1, Index_Type'Last) + 1;
    
    No_Index : constant Extended_Index := Extended_Index'First;
+   Shrink_Factor : constant Count_Type := 10; -- if Capacity / Length <= Shrink_Factor then Array is resized to length on any delete procedure
    
    type Array_Type is array(Index_Type range <>) of Element_Type;
    type Array_Acc is access Array_Type;
@@ -43,10 +44,11 @@ package Unbound_Array with SPARK_Mode is
    -- Unbound_Array creations --------------------------------------------
    
    -- Sets up a new unbound array with cap as capacity
-   function To_Unbound_Array (Cap : Positive) return Unbound_Array_Record
+   function To_Unbound_Array (Cap : Positive; Default_Item : Element_Type) return Unbound_Array_Record
      with Pre => Positive(Index_Type'Last) >= Cap and then Index_Type'First <= Index_Type(Cap),
-       Post => (if To_Unbound_Array'Result.Arr /= null then (Capacity(To_Unbound_Array'Result) = Count_Type(Cap)
-                     and then To_Unbound_Array'Result.Arr.all'First = Index_Type'First and then To_Unbound_Array'Result.Arr.all'Last = Index_Type(Cap))
+            Post => (if To_Unbound_Array'Result.Arr /= null then (Capacity(To_Unbound_Array'Result) = Count_Type(Cap)
+                     and then To_Unbound_Array'Result.Arr.all'First = Index_Type'First and then To_Unbound_Array'Result.Arr.all'Last = Index_Type(Cap)
+                    and then (for all I in To_Unbound_Array'Result.Arr.all'First .. To_Unbound_Array'Result.Arr.all'Last => To_Unbound_Array'Result.Arr.all(I) = Default_Item))
                     else Capacity(To_Unbound_Array'Result) = Count_Type'First);
    
    function "=" (Left, Right : Unbound_Array_Record) return Boolean
@@ -79,18 +81,12 @@ package Unbound_Array with SPARK_Mode is
      with Pre => Last_Index(Self) /= No_Index and then Last_Index(Self) >= Index and then First_Index(Self) <= Index,
    Post => Element(Self, Index) = New_Item;
 
-   --  procedure Query_Element
-   --    (Self : in Unbound_Array_Record;
-   --     Index     : in Index_Type;
-   --     Process   : not null access procedure (Process_Element : in Element_Type))
-   --      with Pre => First_Index(Self) <= Index and then Last_Index(Self) >= Index;
-
    --  procedure Update_Element
    --    (Self : in out Unbound_Array_Record;
    --     Index     : in     Index_Type;
    --     Process   : not null access procedure (Process_Element : in out Element_Type))
    --  with Pre => First_Index <= Index and then Last_Index(Self) >= Index; --,
-      -- Post => Element(Self, Index) = Process_Element; -- Not sure how to access Process_Element here
+      -- Post => Element(Self, Index) = Process_Element; -- Not sure how to prove that Process_Element got changed correctly
 
    procedure Copy (Target : out Unbound_Array_Record;
                    Source : Unbound_Array_Record; Success: out Boolean)
@@ -142,10 +138,16 @@ package Unbound_Array with SPARK_Mode is
    -- mhatzl
    --  procedure Delete_First (Self : in out Unbound_Array_Record;
    --                          Count     : in     Positive := 1);
-   --  
-   --  procedure Delete_Last (Self : in out Unbound_Array_Record;
-   --                         Count     : in     Positive := 1);
-   --  
+   
+   
+   procedure Delete_Last (Self : in out Unbound_Array_Record; Count : in Positive := 1)
+     with Pre => Self.Arr /= null and then Last_Index(Self) /= No_Index 
+     and then Length(Self) >= Count_Type(Count)
+     and then (Extended_Index(Count) - 1) <= (Last_Index(Self) - Extended_Index(First_Index(Self))),
+     Post => Self.Last = Self.Last'Old - Extended_Index(Count);
+      
+   
+   
    --  procedure Reverse_Elements (Self : in out Unbound_Array_Record);
    --  
    --  procedure Swap (Self : in out Unbound_Array_Record;
@@ -210,5 +212,7 @@ package Unbound_Array with SPARK_Mode is
 private
    
    package Array_Alloc is new Safe_Alloc.Arrays(Element_Type => Element_Type, Index_Type => Index_Type, Array_Type => Array_Type, Array_Type_Acc => Array_Acc);
+   
+   --  procedure Shrink (Self : Unbound_Array_Record; Cap : Positive);
    
 end Unbound_Array;

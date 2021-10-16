@@ -1,10 +1,17 @@
 package body Unbound_Array with SPARK_Mode is
    
-   function To_Unbound_Array (Cap : Positive) return Unbound_Array_Record
+   function To_Unbound_Array (Cap : Positive; Default_Item : Element_Type) return Unbound_Array_Record
    is
       Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => Index_Type'First, Last => Index_Type(Cap));
       Unbound_Arr : Unbound_Array_Record := Unbound_Array_Record'(Last => No_Index, Arr => Arr_Acc);
    begin
+      if Unbound_Arr.Arr /= null then
+         for I in Unbound_Arr.Arr.all'First .. Unbound_Arr.Arr.all'Last loop
+            Unbound_Arr.Arr.all(I) := Default_Item;
+            pragma Loop_Invariant (for all P in Unbound_Arr.Arr.all'First .. I => Unbound_Arr.Arr.all(P) = Default_Item);
+         end loop;
+      end if;
+            
       return Unbound_Arr;
    end To_Unbound_Array;
     
@@ -77,14 +84,6 @@ package body Unbound_Array with SPARK_Mode is
       Self.Arr.all(Index) := New_Item;
    end Replace_Element;
 
-   --  procedure Query_Element
-   --    (Self : in Unbound_Array_Record;
-   --     Index     : in Index_Type;
-   --     Process   : not null access procedure (Process_Element : in Element_Type)) is
-   --  begin
-   --     Process.all(Self.Arr.all(Index));
-   --  end Query_Element;
-
    --  procedure Update_Element
    --    (Self : in out Unbound_Array_Record;
    --     Index     : in     Index_Type;
@@ -106,7 +105,7 @@ package body Unbound_Array with SPARK_Mode is
          return;
       end if;
              
-      Target.Arr := Array_Alloc.Alloc(Source.Arr.all'First, Source.Arr.all'Last);
+      Target.Arr := Array_Alloc.Alloc(First => Source.Arr.all'First, Last => Source.Arr.all'Last);
    
       if Target.Arr = null then
          Success := False;
@@ -146,13 +145,13 @@ package body Unbound_Array with SPARK_Mode is
             declare
                New_Max_Last : Index_Type := Index_Type(Capacity(Self)) + Added_Capacity;
                Ghost_New_Max_Last : Index_Type;
-               Arr_Acc : Array_Acc := Array_Alloc.Alloc(Self.Arr.all'First, New_Max_Last);
+               Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => Self.Arr.all'First, Last => New_Max_Last);
                Tmp_Last : Extended_Index := Self.Last;
             begin
                while Arr_Acc = null and then New_Max_Last > Index_Type(Capacity(Self)) and then New_Max_Last > (Last_Index(Self) + 1) loop
                   Ghost_New_Max_Last := New_Max_Last;                  
                   New_Max_Last := New_Max_Last - 1;
-                  Arr_Acc := Array_Alloc.Alloc(Self.Arr.all'First, New_Max_Last);
+                  Arr_Acc := Array_Alloc.Alloc(First => Self.Arr.all'First, Last => New_Max_Last);
                   
                   pragma Loop_Invariant (New_Max_Last = Ghost_New_Max_Last - 1);
                   pragma Loop_Invariant (Tmp_Last < New_Max_Last);
@@ -196,6 +195,14 @@ package body Unbound_Array with SPARK_Mode is
    --  begin
    --     null;
    --  end Delete;
+   
+   procedure Delete_Last (Self : in out Unbound_Array_Record; Count : in Positive := 1)
+   is
+   begin
+      -- Actually not deleting anything, but moving values out of scope
+      Self.Last := Self.Last - Extended_Index(Count);
+   end;
+      
 
    function First_Element (Self : Unbound_Array_Record) return Element_Type is
    begin
@@ -251,6 +258,15 @@ package body Unbound_Array with SPARK_Mode is
       return False;
    end Contains;
 
+   
+   -- Private --------------------------------
+   
+   --  procedure Shrink (Self : Unbound_Array_Record; Cap : Positive) is
+   --  begin
+   --     null;
+   --  end Shrink;
+   
+   
    -- Ghost --------------------------------
    
    function Ghost_Arr_Length (Self : Array_Acc) return Count_Type is
