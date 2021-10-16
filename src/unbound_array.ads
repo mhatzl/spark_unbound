@@ -166,10 +166,13 @@ package Unbound_Array with SPARK_Mode is
      with Pre => Self.Arr /= null and then Self.Last /= No_Index and then Length(Self) > Count_Type'First,
    Post => Last_Element'Result = Self.Arr.all(Last_Index(Self));
 
-   --  function Find_Index (Self : Unbound_Array_Record;
-   --                       Item      : Element_Type;
-   --                       Index     : Index_Type := Index_Type'First)
-   --                       return Extended_Index;
+   function Find_Index (Self : Unbound_Array_Record;
+                        Item      : Element_Type;
+                        Index     : Index_Type := Index_Type'First)
+                        return Extended_Index
+     with Pre => Last_Index(Self) /= No_Index and then Last_Index(Self) >= Index and then First_Index(Self) <= Index,
+     Post => (if Find_Index'Result /= No_Index then Element(Self,Find_Index'Result) = Item
+                else (for all I in First_Index(Self) .. Index => Element(Self, I) /= Item));
 
    -- mhatzl
    --  function Reverse_Find_Index (Self : Unbound_Array_Record;
@@ -177,14 +180,11 @@ package Unbound_Array with SPARK_Mode is
    --                               Index     : Index_Type := Index_Type'Last)
    --                               return Extended_Index;
 
-   --  function Contains (Self : Unbound_Array_Record;
-   --                     Item      : Element_Type) return Boolean
-   --    with Post => (if Contains'Result then
-   --         (for some I in First_Index .. Last_Index(Self)
-   --          => Element(Self, I) = Item)
-   --          else (Last_Index(Self) = No_Index or else
-   --            (for all I in First_Index .. Last_Index(Self)
-   --             => Element(Self, I) /= Item)));
+   function Contains (Self : Unbound_Array_Record;
+                      Item      : Element_Type) return Boolean
+     with Post => (if Contains'Result then Self.Arr /= null and then Self.Last /= No_Index
+                     and then (for some I in First_Index(Self) .. Last_Index(Self) => Element(Self, I) = Item));
+                     
 
    -- mhatzl
    --  generic

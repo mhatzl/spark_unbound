@@ -143,27 +143,34 @@ package body Unbound_Array with SPARK_Mode is
       return Self.Arr.all(Last_Index(Self));
    end Last_Element;
 
-   --  function Find_Index (Self : Not_Null_Unbound_Array_Acc;
-   --                       Item      : Element_Type;
-   --                       Index     : Index_Type := Index_Type'First)
-   --                       return Extended_Index is
-   --  begin
-   --     return Extended_Index'First;
-   --  end Find_Index;
+   function Find_Index (Self : Unbound_Array_Record;
+                        Item      : Element_Type;
+                        Index     : Index_Type := Index_Type'First)
+                        return Extended_Index is
+   begin
+      for I in First_Index(Self) .. Index loop      
+         if Element(Self, I) = Item then
+            return I;
+         end if;
+         pragma Loop_Invariant (for all P in First_Index(Self) .. I => Element(Self, P) /= Item);
+      end loop;
+      
+      return No_Index;
+   end Find_Index;
      
-   --  function Contains (Self : Unbound_Array_Record; Item : Element_Type) return Boolean is
-   --  begin
-   --     if Self.Arr = null then
-   --        return False;
-   --     end if;
-   --  
-   --     for I in Self.Arr.all'Range loop
-   --        if Self.Arr.all(I) = Item then
-   --           return True;
-   --        end if;
-   --     end loop;
-   --     return False;
-   --  end Contains;
+   function Contains (Self : Unbound_Array_Record; Item : Element_Type) return Boolean is
+   begin
+      if Self.Arr = null or else Self.Last = No_Index then
+         return False;
+      end if;
+   
+      for I in First_Index(Self) .. Last_Index(Self) loop
+         if Self.Arr.all(I) = Item then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Contains;
 
    -- Ghost --------------------------------
    
