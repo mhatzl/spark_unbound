@@ -2,7 +2,7 @@ package body Unbound_Array with SPARK_Mode is
    
    function To_Unbound_Array (Cap : Positive; Default_Item : Element_Type) return Unbound_Array_Record
    is
-      Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => Index_Type'First, Last => Index_Type(Cap));
+      Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => Index_Type'First, Last => Extended_Index(Cap));
       Unbound_Arr : Unbound_Array_Record := Unbound_Array_Record'(Last => No_Index, Arr => Arr_Acc);
    begin
       if Unbound_Arr.Arr /= null then
@@ -14,7 +14,16 @@ package body Unbound_Array with SPARK_Mode is
             
       return Unbound_Arr;
    end To_Unbound_Array;
-    
+   
+   
+   function Natural_To_Index (Val : Natural) return Index_Type
+   is
+      Intermediate : Integer := Integer(Val);
+   begin
+      return Index_Type(Intermediate);  
+   end Natural_To_Index;
+   
+   
    
    function "=" (Left, Right : Unbound_Array_Record) return Boolean
    is
@@ -41,11 +50,11 @@ package body Unbound_Array with SPARK_Mode is
       return True;
    end "=";
 
-   function Capacity (Self : Unbound_Array_Record) return Count_Type
+   function Capacity (Self : Unbound_Array_Record) return Natural
    is
    begin
       if Self.Arr = null then
-         return Count_Type'First;
+         return Natural'First;
       end if;
       
       return Self.Arr.all'Length;
@@ -56,14 +65,14 @@ package body Unbound_Array with SPARK_Mode is
    --     null;
    --  end Reserve_Capacity;
 
-   function Length (Self : Unbound_Array_Record) return Count_Type
+   function Length (Self : Unbound_Array_Record) return Natural
    is
    begin
       if Last_Index(Self) = No_Index then
-         return Count_Type'First;
+         return Natural'First;
       end if;
-      
-      return Count_Type(Last_Index(Self) - First_Index(Self)) + 1; -- Last = First leaves room for 1 element
+      -- abs() needed since indizes might be negative
+      return abs(Natural(Last_Index(Self) - First_Index(Self))) + 1; -- Last = First leaves room for 1 element
    end Length;
 
    function Is_Empty (Self : Unbound_Array_Record) return Boolean
@@ -98,15 +107,13 @@ package body Unbound_Array with SPARK_Mode is
    --     Process.all(Self.Arr.all(Index));
    --  end Update_Element;
 
-   procedure Copy (Target : out Unbound_Array_Record;
-                   Source : Unbound_Array_Record; Success: out Boolean)
+   procedure Copy (Target : out Unbound_Array_Record; Source : Unbound_Array_Record; Success: out Boolean)
    is
    begin
       Target.Last := No_Index; 
       Target.Arr := null;
       
       if Source.Arr = null then
-         pragma Assert (Source = Target); -- somehow fails even if Target.Arr = null and Source.Arr = null would count as equal
          Success := True;
          return;
       end if;
@@ -121,15 +128,33 @@ package body Unbound_Array with SPARK_Mode is
             Target.Arr.all(I) := Source.Arr.all(I);
             pragma Loop_Invariant (for all P in First_Index(Source) .. I => Target.Arr.all(P) = Source.Arr.all(P));
          end loop;
-         pragma Assert (Source = Target); -- somehow fails even if "=" Post contract is the same
-         
+
          Success := True;
       end if;
    end Copy;
    
    
-   procedure Append (Self : in out Unbound_Array_Record;
-                     New_Item  : in     Element_Type; Success: out Boolean)
+   procedure Move (Target : in out Unbound_Array_Record; Source : in out Unbound_Array_Record; Success: out Boolean)
+   is
+   begin
+      for I in First_Index(Source) .. Last_Index(Source) loop
+         Target.Arr.all(I) := Source.Arr.all(I);
+         pragma Loop_Invariant (for all P in First_Index(Source) .. I => Target.Arr.all(P) = Source.Arr.all(P));
+      end loop;
+      Target.Last := Source.Last;
+      
+      Source.Last := No_Index;
+      Array_Alloc.Free(Source.Arr);
+      
+      if Source.Arr = null and then Source.Last = No_Index then
+         Success := True;
+      else
+         raise Program_Error;
+      end if;
+   end Move;
+   
+   
+   procedure Append (Self : in out Unbound_Array_Record; New_Item : in Element_Type; Success: out Boolean)
    is
    begin
       if Last_Index(Self) < Self.Arr.all'Last then
@@ -138,18 +163,21 @@ package body Unbound_Array with SPARK_Mode is
          Success := True;
       elsif Capacity(Self) < Index_Type'Range_Length then
          declare
-            Added_Capacity : Index_Type := Index_Type(Capacity(Self)); -- Try to double array capacity for O(Log(N))
-            Ghost_Added_Capactiy : Index_Type;
+            Added_Capacity : Natural := Capacity(Self); -- Try to double array capacity for O(Log(N))
+            Ghost_Added_Capactiy : Natural;
          begin
-            while ((Index_Type'Last - Added_Capacity) < Index_Type(Capacity(Self) + 1)) and then Added_Capacity > Index_Type'First loop
+            -- +1 since Capacity(Self) is not yet Index_Type'Range_Length so there is room
+            while (Integer(Index_Type'Last) - Integer(Added_Capacity)) < Integer(Capacity(Self) + 1) and then Added_Capacity > Natural'First loop
                Ghost_Added_Capactiy := Added_Capacity;
                Added_Capacity := Added_Capacity - 1;
                
                pragma Loop_Invariant (Added_Capacity = Ghost_Added_Capactiy - 1);
             end loop;
             
+            pragma Assert ((Capacity(Self) + Added_Capacity) <= Index_Type'Range_Length);
+            
             declare
-               New_Max_Last : Index_Type := Index_Type(Capacity(Self)) + Added_Capacity;
+               New_Max_Last : Index_Type := Index_Type(Capacity(Self) + Added_Capacity);
                Ghost_New_Max_Last : Index_Type;
                Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => Self.Arr.all'First, Last => New_Max_Last);
                Tmp_Last : Extended_Index := Self.Last;
@@ -172,6 +200,7 @@ package body Unbound_Array with SPARK_Mode is
                else
                   for I in First_Index(Self) .. Last_Index(Self) loop
                      Arr_Acc.all(I) := Self.Arr.all(I);
+                     pragma Loop_Invariant (for all P in First_Index(Self) .. I => Arr_Acc.all(P) = Self.Arr.all(P));
                   end loop;
                   Self.Last := No_Index;
                   Array_Alloc.Free(Self.Arr);
@@ -239,10 +268,7 @@ package body Unbound_Array with SPARK_Mode is
       return Self.Arr.all(Last_Index(Self));
    end Last_Element;
 
-   function Find_Index (Self : Unbound_Array_Record;
-                        Item      : Element_Type;
-                        Index     : Index_Type := Index_Type'First)
-                        return Extended_Index
+   function Find_Index (Self : Unbound_Array_Record; Item : Element_Type; Index : Index_Type := Index_Type'First) return Extended_Index
    is
    begin
       for I in First_Index(Self) .. Index loop      
@@ -271,37 +297,48 @@ package body Unbound_Array with SPARK_Mode is
    end Contains;
 
    
-   -- Private -------------------------------------------------------------------------------
+   -- Private ----------------------------------------------------------------------------------
    
-   --  procedure Shrink (Self : Unbound_Array_Record; Cap : Positive) is
+   --  procedure Shrink (Self : in out Unbound_Array_Record; Cap : Positive; Success : Boolean)
+   --  is
+   --     Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => First_Index(Self), Last => Index_Type'First + Index_Type(Cap));
    --  begin
    --     null;
+   --  
    --  end Shrink;
    
    
    -- Ghost ----------------------------------------------------------------------------------
    
-   function Ghost_Arr_Length (Self : Array_Acc) return Count_Type
+   function Ghost_Acc_Length (Self : Array_Acc) return Natural
    is
    begin
       if Self = null then
-         return Count_Type'First;
+         return Natural'First;
       end if;
       
       return Self.all'Length;
-   end Ghost_Arr_Length;
+   end Ghost_Acc_Length;
       
    
-   function Ghost_Arr_Equals (Smaller, Bigger : Array_Type; First, Last : Index_Type) return Boolean
+   function Ghost_Arr_Equals (Left, Right : Array_Type; First, Last : Index_Type) return Boolean
    is
    begin
       for I in First .. Last loop
-         if Smaller(I) /= Bigger(I) then
+         if Left(I) /= Right(I) then
             return False;
          end if;
-         pragma Loop_Invariant (for all P in First .. I => Smaller(P) = Bigger(P));
+         pragma Loop_Invariant (for all P in First .. I => Left(P) = Right(P));
       end loop;
       return True;
    end Ghost_Arr_Equals;
+      
+   
+   function Ghost_Arr_Length (Self : Array_Type) return Natural
+   is
+   begin
+      return Self'Length;
+   end Ghost_Arr_Length;
+   
    
 end Unbound_Array;
