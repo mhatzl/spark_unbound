@@ -79,7 +79,7 @@ project Spark_Unbound is
         Contracts_Switches &
         ("-gnatw.X", -- Disable warnings for No_Exception_Propagation
          "-gnatQ", -- Don't quit. Generate ALI and tree files even if illegalities
-         "-gnatX"); -- Big_Numbers
+         "-gnat2020"); -- Big_Numbers
    end Compiler;
 
    package Binder is
