@@ -6,11 +6,13 @@ package body Safe_Alloc with SPARK_Mode is
       procedure Dealloc is new Ada.Unchecked_Deallocation (T, T_Acc);
 
       function Alloc return T_Acc is
-         pragma SPARK_Mode (Off); -- Only the allocation has to be in SPARK off
+         pragma SPARK_Mode (Off); -- Spark OFF for exception handling
       begin
          declare
-            Pointer : T_Acc := new T;
+            Pointer : T_Acc;
          begin
+            -- Note: Allocation must be inside `begin`! Otherwise, exception is not catched
+            Pointer := new T;
             return Pointer;
          exception
             when Storage_Error =>
@@ -28,11 +30,13 @@ package body Safe_Alloc with SPARK_Mode is
       procedure Dealloc is new Ada.Unchecked_Deallocation (Array_Type, Array_Type_Acc);
 
       function Alloc (First, Last : Index_Type) return Array_Type_Acc is
-         pragma SPARK_Mode (Off); -- Only the allocation has to be in SPARK off
+         pragma SPARK_Mode (Off); -- Spark OFF for exception handling
       begin
          declare
-            Pointer : Array_Type_Acc := new Array_Type(First .. Last);
+            Pointer : Array_Type_Acc;
          begin
+            -- Note: Allocation must be inside `begin`! Otherwise, exception is not catched
+            Pointer := new Array_Type(First .. Last);
             return Pointer;
          exception
             when Storage_Error =>
