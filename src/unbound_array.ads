@@ -255,7 +255,8 @@ package Unbound_Array with SPARK_Mode is
      --        => Element(Self, I) = Item)
      --   else (for all I in First_Index(Self) .. Last_Index(Self)
      --        => Element(Self, I) /= Item));
-   --
+     --
+     -- procedure Sorted_Add (Self : in out Unbound_Array_Record; New_Item : in Element_Type; Success: out Boolean)
    --
    --  function Sorted_Find_Index (Self : Unbound_Array_Record; Item : Element_Type; Index : Index_Type := Index_Type'First) return Extended_Index
    --    with Pre => Last_Index(Self) /= No_Index and then Last_Index(Self) >= Index and then First_Index(Self) <= Index,

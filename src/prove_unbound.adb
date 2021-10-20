@@ -1,6 +1,7 @@
 with Unbound_Array;
 
-procedure Test_Unbound with SPARK_Mode is
+-- Procedure to instantiate concrete packages of Unbound_Array to be proven by GNATprove
+procedure Prove_Unbound with SPARK_Mode is
    
    type MyInt is new Integer with Default_Value => 0;
    
@@ -38,4 +39,4 @@ begin
    
    unbound_record.Clear(test2);
 
-end Test_Unbound;
+end Prove_Unbound;
