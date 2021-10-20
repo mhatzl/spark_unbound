@@ -1,0 +1,16 @@
+name = "tests"
+description = "Shiny new project"
+version = "0.0.0"
+
+authors = ["Manuel Hatzl"]
+maintainers = ["Manuel Hatzl <hatzlmanuel@outlook.com>"]
+maintainers-logins = ["mhatzl"]
+
+executables = ["tests"]
+
+[[depends-on]]
+spark_unbound = "*"
+aunit = "*"
+
+[[pins]]
+spark_unbound = { path = ".." } 
