@@ -1,24 +1,22 @@
 # Main workflow with Ubuntu as target os
 name: Main-Ubuntu
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Allows to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-  build-prove-crate:
+  build-prove:
     name: Build and prove the Spark_Unbound crate
     runs-on: ubuntu-latest
 
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Checks-out repository under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
       
       - uses: ada-actions/toolchain@ce2021
@@ -26,8 +24,7 @@ jobs:
           distrib: community
           
       - uses: alire-project/setup-alire@latest-stable
-    #    with:
-    #      toolchain: 'gnat_external=2021.0.0'
+
       - name: Disable toolchain assistant
         run: alr toolchain --disable-assistant
         
@@ -38,50 +35,33 @@ jobs:
         run: alr build
 
       - name: Run GNATprove
-        # Source from: https://github.com/Fabien-Chouteau/bbqueue-spark/blob/main/.github/workflows/main.yml
         run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings
 
-      # Runs a single command using the runners shell
-      #- name: Run a one-line script
-      #  run: echo Hello, world!
 
-      # Runs a set of commands using the runners shell
-      #- name: Run a multi-line script
-      #  run: |
-      #    echo Add other actions to build,
-      #    echo test, and deploy your project.
+  test:
+    name: Run tests for the Spark_Unbound crate
+    runs-on: ubuntu-latest
 
-#  prove-crate:
-#    name: Try to prove the Spark_Unbound crate
-#    runs-on: ubuntu-latest
-#    
-#    steps:
-#      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-#      - uses: actions/checkout@v2
-#      
-#      - uses: ada-actions/toolchain@ce2021
-#        with:
-#          distrib: community
-#          
-#      - name: Run GNATprove
-#        # Source from: https://github.com/Fabien-Chouteau/bbqueue-spark/blob/main/.github/workflows/main.yml
-#        run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings
+    steps:
+      - uses: actions/checkout@v2
+      
+      - uses: ada-actions/toolchain@ce2021
+        with:
+          distrib: community
           
+      - uses: alire-project/setup-alire@latest-stable
+      
+      - name: Switch to tests directory
+        run: cd tests
 
-# > output.txt 2>&1 || status=$?
-
-# status = 0
-# cat output.txt
-#          # Check for errors
-#          if [ $status -ne 0 ]; then
-#            echo "ERROR: gnatprove returned $status"
-#            # This will cause the workflow to exit with $status
-#            bash -c "exit $status"
-#          fi
-
-#  test:
-#    name: Run tests for the Spark_Unbound crate
-#    runs-on: ubuntu-latest
-
-
+      - name: Disable toolchain assistant
+        run: alr toolchain --disable-assistant
+        
+      - name: Set alr toolchain
+        run: alr toolchain --select gnat_external
+      
+      - name: Alire build
+        run: alr build
           
+      - name: Run tests
+        run: alr run
