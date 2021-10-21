@@ -7,3 +7,6 @@ obj/
 lib/
 alire/
 config/
+
+# editors
+.vscode
