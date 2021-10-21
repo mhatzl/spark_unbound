@@ -14,7 +14,7 @@ package Safe_Alloc with SPARK_Mode is
    --- Generic package for safe heap allocation of type `T` whose size is known at compile time.
    --- Type `T_Acc` is used to access the allocated instance of type `T`.
    generic
-      type T is private;
+      type T is limited private;
       type T_Acc is access T;
    package Definite with SPARK_Mode is
       
