@@ -1,6 +1,6 @@
 name = "tests"
 description = "Tests for spark_unbound"
-version = "0.1.1"
+version = "0.1.2"
 
 authors = ["Manuel Hatzl"]
 maintainers = ["Manuel Hatzl <hatzlmanuel@outlook.com>"]
