@@ -34,8 +34,8 @@ jobs:
       - name: Alire build
         run: alr build
 
-      - name: Run GNATprove
-        run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings
+#      - name: Run GNATprove
+ #       run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings
 
 
   test:
@@ -44,6 +44,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          path: '..'
       
       - uses: ada-actions/toolchain@ce2021
         with:
@@ -51,8 +53,8 @@ jobs:
           
       - uses: alire-project/setup-alire@latest-stable
       
- #     - name: Switch to tests directory
- #       run: cd tests
+      - name: Where are we?
+        run: pwd
 
       - name: Disable toolchain assistant
         run: alr toolchain --disable-assistant
@@ -61,7 +63,7 @@ jobs:
         run: alr toolchain --select gnat_external
       
       - name: Alire build
-        run: cd tests & alr build
+        run: alr build
           
       - name: Run tests
         run: alr run
