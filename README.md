@@ -1,4 +1,4 @@
-# spark_unbound ![Main Workflow](https://github.com/mhatzl/spark_unbound/actions/workflows/main_ubuntu.yml/badge.svg?branch=main)
+# spark_unbound ![Main Workflow](https://github.com/mhatzl/spark_unbound/actions/workflows/main_ubuntu.yml/badge.svg?branch=main)![Documentation](https://github.com/mhatzl/spark_unbound/actions/workflows/generate_doc.yml/badge.svg?branch=main)
 
 Spark_Unbound offers generic unbound data structures in *Ada-Spark*.
 All data structures are proven with *Spark* and the allocation handles `Storage_Error` internally,
@@ -22,15 +22,8 @@ Internally, `Unbound_Array` uses an array that is dynamically allocated and resi
 
 **Note:** The maximum length of an `Unbound_Array` is constrained by `Natural'Range_Length` since `Capacity` and `Length` return `Natural`.
 
-**Status**
+**Current missing functionality:**
 
-- To be able to prove functional correctness, I had to make the underlying types public and therefore open for external modification.  
-  I hope to fix this at some point.
-
-- *GNATprove* returns:  
-  `"memory accessed through objects of access type" might not be initialized after elaboration of main program`.  
-  I do not know how to resolve this for now.
-  
 - `Insert`, `Prepend`, `Reverse_Elements`, `Swap` and indexed deletion is not yet implemented
 - The sub-package `Generic_Sorting` is not yet implemented
 - Other functions/procedures available in `Ada.Containers.Vector` might never be implemented
@@ -49,14 +42,11 @@ that handles `Storage_Error` and returns `null` in that case.
 Tests are set up in the `tests` subdirectory using `AUnit` to verify the `Safe_Alloc` part that is not in *Spark*
 and some functionality of every data structure to serve as a kind of usage guide.
 
-**Status:**
-
-- Failed tests do not flag GitHub actions as failed
-
+To run tests manually, move to the `tests` directory and run `alr run`.
 
 # Contribution
 
-Feedback is very much welcomed.
+Feedback is very much welcomed as I am very new to Ada.
 Since I want to participate in the *Crate of the Year*-Award, I will not accept any pull request before end of this year to avoid any legal issues.
 
 

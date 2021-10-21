@@ -9,6 +9,7 @@ package body SA_Definite_Tests is
       type Inner_Array is array(0 .. 1_000_000) of Integer;      
       type Alloc_Record is record
          Arr : Inner_Array;
+         Arr2 : Inner_Array;
          V1 : Integer;
          V2 : Natural;
          V3 : Positive;
