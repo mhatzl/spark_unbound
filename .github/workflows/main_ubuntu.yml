@@ -25,11 +25,10 @@ jobs:
           
       - uses: alire-project/setup-alire@latest-stable
 
-      - name: Disable toolchain assistant
-        run: alr toolchain --disable-assistant
-        
-      - name: Set alr toolchain
-        run: alr toolchain --select gnat_external
+      - name: Set alr toolchain manually
+        run: |
+          alr toolchain --disable-assistant
+          alr toolchain --select gnat_external
       
       - name: Alire build
         run: alr build

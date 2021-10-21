@@ -1,0 +1,44 @@
+# Workflow to generate documentation using GNATdoc and publish it as GitHub page
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  gen-doc:
+    name: Build and generate documentation for Spark_Unbound
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - uses: ada-actions/toolchain@ce2021
+        with:
+          distrib: community
+          
+      - uses: alire-project/setup-alire@latest-stable
+
+      - name: Set alr toolchain manually
+        run: |
+          alr toolchain --disable-assistant
+          alr toolchain --select gnat_external
+      
+      - name: Alire build
+        run: alr build
+
+      - name: Generate documentation
+        run: gnatdoc -Pspark_unbound.gpr --no-subprojects -l
+
+      - name: Push documentation to doc-branch
+        run: |
+          git config user.name github-actions
+          git config user.email hatzl.manuel@outlook.com
+          git checkout doc
+          mv -v obj/gnatdoc docs
+          git add docs
+          git commit -m "Generated documentation"
+          git push origin doc
