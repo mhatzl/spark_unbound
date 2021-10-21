@@ -26,6 +26,8 @@ jobs:
           distrib: community
           
       - uses: alire-project/setup-alire@latest-stable
+        with:
+          toolchain: 'gnat_external=2021.0.0'
       
       - name: Alire build
         run: alr build
@@ -54,17 +56,19 @@ jobs:
           
       - name: Run GNATprove
         # Source from: https://github.com/Fabien-Chouteau/bbqueue-spark/blob/main/.github/workflows/main.yml
-        run: |
-          status = 0
-          gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings > output.txt 2>&1 || status=$?
-          cat output.txt
-          # Check for errors
-          if [ $status -ne 0 ]; then
-            echo "ERROR: gnatprove returned $status"
-            # This will cause the workflow to exit with $status
-            bash -c "exit $status"
-          fi
+        run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings
+          
 
+# > output.txt 2>&1 || status=$?
+
+# status = 0
+# cat output.txt
+#          # Check for errors
+#          if [ $status -ne 0 ]; then
+#            echo "ERROR: gnatprove returned $status"
+#            # This will cause the workflow to exit with $status
+#            bash -c "exit $status"
+#          fi
 
 #  build-tests:
  #   name: Build tests sub-crate for the Spark_Unbound crate
