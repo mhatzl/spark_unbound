@@ -51,20 +51,24 @@ jobs:
           
       - uses: alire-project/setup-alire@latest-stable
       
-      - name: Where are we?
-        run: |
-          pwd
-          cd tests
-          pwd
+ #     - name: Where are we?
+ #       run: |
+ #         pwd
+ #         cd tests
+ #         pwd
 
-      - name: Disable toolchain assistant
-        run: alr toolchain --disable-assistant
-        
-      - name: Set alr toolchain
-        run: alr toolchain --select gnat_external
+      - name: Set alr toolchain 
+        run: |
+          cd tests
+          alr toolchain --disable-assistant
+          alr toolchain --select gnat_external
       
       - name: Alire build
-        run: alr build
+        run: |
+          cd tests
+          alr build
           
       - name: Run tests
-        run: alr run
+        run: |
+          cd tests
+          alr run
