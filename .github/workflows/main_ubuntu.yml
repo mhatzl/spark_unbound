@@ -51,8 +51,8 @@ jobs:
           
       - uses: alire-project/setup-alire@latest-stable
       
-      - name: Switch to tests directory
-        run: cd tests
+ #     - name: Switch to tests directory
+ #       run: cd tests
 
       - name: Disable toolchain assistant
         run: alr toolchain --disable-assistant
@@ -61,7 +61,7 @@ jobs:
         run: alr toolchain --select gnat_external
       
       - name: Alire build
-        run: alr build
+        run: cd tests & alr build
           
       - name: Run tests
         run: alr run
