@@ -44,8 +44,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          path: '..'
       
       - uses: ada-actions/toolchain@ce2021
         with:
@@ -54,6 +52,12 @@ jobs:
       - uses: alire-project/setup-alire@latest-stable
       
       - name: Where are we?
+        run: pwd
+        
+      - name: Try change dir
+        run: cd tests
+
+      - name: Now where are we?
         run: pwd
 
       - name: Disable toolchain assistant
