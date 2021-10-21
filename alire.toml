@@ -1,6 +1,6 @@
 name = "spark_unbound"
-description = "Shiny new project"
-version = "0.0.0"
+description = "Unbound data structures in Ada-Spark"
+version = "0.1.1"
 
 authors = ["Manuel Hatzl"]
 maintainers = ["Manuel Hatzl <hatzlmanuel@outlook.com>"]

@@ -1,6 +1,6 @@
 name = "tests"
-description = "Shiny new project"
-version = "0.0.0"
+description = "Tests for spark_unbound"
+version = "0.1.1"
 
 authors = ["Manuel Hatzl"]
 maintainers = ["Manuel Hatzl <hatzlmanuel@outlook.com>"]
