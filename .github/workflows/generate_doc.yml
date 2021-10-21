@@ -37,7 +37,7 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email hatzl.manuel@outlook.com
-          mv -v obj/gnatdoc docs
+          mv -v obj/gnatdoc/* docs/
           git add docs
           git commit -m "Generated documentation"
-          git push origin main:doc
+          git push --force origin main:doc
