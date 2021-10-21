@@ -86,4 +86,10 @@ project Spark_Unbound is
       for Switches ("Ada") use ("-Es"); --  Symbolic traceback
    end Binder;
 
+   package Documentation is
+      for Doc_Pattern use "^-";
+      -- This considers comments beginning with "---" to be documentation
+      -- Needed to ignore commented Ghost functions that would break GNATdoc
+   end Documentation;
+
 end Spark_Unbound;

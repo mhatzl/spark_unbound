@@ -1,6 +1,6 @@
 with Unbound_Array;
 
--- Procedure to instantiate concrete packages of Unbound_Array to be proven by GNATprove
+--- Procedure to instantiate concrete packages of Unbound_Array to be proven by GNATprove.
 procedure Prove_Unbound with SPARK_Mode is
    
    type MyInt is new Integer with Default_Value => 0;
@@ -21,7 +21,7 @@ procedure Prove_Unbound with SPARK_Mode is
    -- Note: Using type like Float will fail function `Contains` with default `=`
    
    
-   -- This type leads to overflows due to Natural only having half the range => Positive is the largest type not resulting in an overflow
+   -- This type leads to overflows if used as Index_Type due to Natural only having half the range => Positive is the largest type not resulting in an overflow
    -- type Smaller_Int is range Integer'First + 1 .. Integer'Last; -- +1 needed for No_Index
    
    package unbound_record is new Unbound_Array(Element_Type => Test_Record, Index_Type => Positive);

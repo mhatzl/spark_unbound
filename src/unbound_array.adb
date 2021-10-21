@@ -1,5 +1,7 @@
 package body Unbound_Array with SPARK_Mode is
    
+   package Array_Alloc is new Safe_Alloc.Arrays(Element_Type => Element_Type, Index_Type => Index_Type, Array_Type => Array_Type, Array_Type_Acc => Array_Acc);
+   
    
    function Get_Capacity_Offset (Offset : Positive) return Index_Type
    is
@@ -86,7 +88,6 @@ package body Unbound_Array with SPARK_Mode is
       declare
          Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => First_Index(Self), Last => Get_Capacity_Offset(Positive(New_Capacity)));
          Tmp : Unbound_Array_Record := Unbound_Array_Record'(Last => No_Index, Arr => Arr_Acc);
-         Move_Success : Boolean := False;
       begin   
          if Tmp.Arr = null then
             Success := False;
@@ -94,17 +95,13 @@ package body Unbound_Array with SPARK_Mode is
             if Is_Empty(Self) then
                Clear(Self);
             else
-               Move(Tmp, Self, Move_Success);
+               Move(Tmp, Self);
             end if;
             
-            if (Move_Success and then Self.Arr = null and then Self.Last = No_Index)
-              or else (Self.Arr = null and then Self.Last = No_Index) then
-               
+            if Self.Arr = null and then Self.Last = No_Index then
                Self.Arr := Tmp.Arr;
                Self.Last := Tmp.Last;
                Success := True;
-            elsif Move_Success then
-               raise Program_Error;
             else
                Clear(Tmp);
                if Tmp.Arr = null and then Tmp.Last = No_Index then
@@ -193,7 +190,7 @@ package body Unbound_Array with SPARK_Mode is
    end Copy;
    
    
-   procedure Move (Target : in out Unbound_Array_Record; Source : in out Unbound_Array_Record; Success: out Boolean)
+   procedure Move (Target : in out Unbound_Array_Record; Source : in out Unbound_Array_Record)
    is
    begin
       for I in First_Index(Source) .. Last_Index(Source) loop
@@ -205,9 +202,7 @@ package body Unbound_Array with SPARK_Mode is
       Source.Last := No_Index;
       Array_Alloc.Free(Source.Arr);
       
-      if Source.Arr = null and then Source.Last = No_Index then
-         Success := True;
-      else
+      if Source.Arr /= null or else Source.Last /= No_Index then
          raise Program_Error;
       end if;
    end Move;
@@ -343,17 +338,18 @@ package body Unbound_Array with SPARK_Mode is
    end Find_Index;
     
    
-   function Contains (Self : Unbound_Array_Record; Item : Element_Type) return Boolean
+   function Contains (Self : Unbound_Array_Record; Item : Element_Type; Index : Index_Type := Index_Type'First) return Boolean
    is
    begin
       if Self.Arr = null or else Self.Last = No_Index then
          return False;
       end if;
    
-      for I in First_Index(Self) .. Last_Index(Self) loop
+      for I in Index .. Last_Index(Self) loop
          if Self.Arr.all(I) = Item then
             return True;
          end if;
+         pragma Loop_Invariant (for all P in Index .. I => Element(Self, P) /= Item);
       end loop;
       return False;
    end Contains;

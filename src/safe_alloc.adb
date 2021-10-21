@@ -8,16 +8,10 @@ package body Safe_Alloc with SPARK_Mode is
       function Alloc return T_Acc is
          pragma SPARK_Mode (Off); -- Spark OFF for exception handling
       begin
-         declare
-            Pointer : T_Acc;
-         begin
-            -- Note: Allocation must be inside `begin`! Otherwise, exception is not catched
-            Pointer := new T;
-            return Pointer;
-         exception
-            when Storage_Error =>
-               return null;
-         end;
+         return new T;
+      exception
+         when Storage_Error =>
+            return null;
       end Alloc;
 
       procedure Free (Pointer : in out T_Acc) is
@@ -32,16 +26,10 @@ package body Safe_Alloc with SPARK_Mode is
       function Alloc (First, Last : Index_Type) return Array_Type_Acc is
          pragma SPARK_Mode (Off); -- Spark OFF for exception handling
       begin
-         declare
-            Pointer : Array_Type_Acc;
-         begin
-            -- Note: Allocation must be inside `begin`! Otherwise, exception is not catched
-            Pointer := new Array_Type(First .. Last);
-            return Pointer;
-         exception
-            when Storage_Error =>
-               return null;
-         end;
+         return new Array_Type(First .. Last);
+      exception
+         when Storage_Error =>
+            return null;
       end Alloc;
       
       procedure Free (Pointer : in out Array_Type_Acc) is
