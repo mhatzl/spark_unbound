@@ -13,8 +13,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-crate:
-    name: Build Spark_Unbound crate
+  build-prove-crate:
+    name: Build and prove the Spark_Unbound crate
     runs-on: ubuntu-latest
 
     steps:
@@ -26,11 +26,20 @@ jobs:
           distrib: community
           
       - uses: alire-project/setup-alire@latest-stable
-        with:
-          toolchain: 'gnat_external=2021.0.0'
+    #    with:
+    #      toolchain: 'gnat_external=2021.0.0'
+      - name: Disable toolchain assistant
+        run: alr toolchain --disable-assistant
+        
+      - name: Set alr toolchain
+        run: alr toolchain --select gnat_external
       
       - name: Alire build
         run: alr build
+
+      - name: Run GNATprove
+        # Source from: https://github.com/Fabien-Chouteau/bbqueue-spark/blob/main/.github/workflows/main.yml
+        run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings
 
       # Runs a single command using the runners shell
       #- name: Run a one-line script
@@ -42,21 +51,21 @@ jobs:
       #    echo Add other actions to build,
       #    echo test, and deploy your project.
 
-  prove-crate:
-    name: Try to prove the Spark_Unbound crate
-    runs-on: ubuntu-latest
-    
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      
-      - uses: ada-actions/toolchain@ce2021
-        with:
-          distrib: community
-          
-      - name: Run GNATprove
-        # Source from: https://github.com/Fabien-Chouteau/bbqueue-spark/blob/main/.github/workflows/main.yml
-        run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings
+#  prove-crate:
+#    name: Try to prove the Spark_Unbound crate
+#    runs-on: ubuntu-latest
+#    
+#    steps:
+#      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+#      - uses: actions/checkout@v2
+#      
+#      - uses: ada-actions/toolchain@ce2021
+#        with:
+#          distrib: community
+#          
+#      - name: Run GNATprove
+#        # Source from: https://github.com/Fabien-Chouteau/bbqueue-spark/blob/main/.github/workflows/main.yml
+#        run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings
           
 
 # > output.txt 2>&1 || status=$?
@@ -70,14 +79,8 @@ jobs:
 #            bash -c "exit $status"
 #          fi
 
-#  build-tests:
- #   name: Build tests sub-crate for the Spark_Unbound crate
-  #  runs-on: ubuntu-latest
-
-
 #  test:
-#    name: Run tests sub-crate for the Spark_Unbound crate
-#    needs: build-tests
+#    name: Run tests for the Spark_Unbound crate
 #    runs-on: ubuntu-latest
 
 
