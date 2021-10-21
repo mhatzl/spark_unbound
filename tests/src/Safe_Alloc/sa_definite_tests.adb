@@ -6,10 +6,28 @@ package body SA_Definite_Tests is
 
    procedure TestAlloc_WithForcingStorageError_ResultNullReturned(T : in out Test_Fixture)
    is
-      type Inner_Array is array(0 .. 1_000_000) of Integer;      
+      type Inner_Array is array(-9_00_000_000 .. 9_00_000_000) of Integer;      
       type Alloc_Record is record
-         Arr : Inner_Array;
+         Arr1 : Inner_Array;
          Arr2 : Inner_Array;
+         Arr3 : Inner_Array;
+         Arr4 : Inner_Array;
+         Arr5 : Inner_Array;
+         Arr6 : Inner_Array;
+         Arr7 : Inner_Array;
+         Arr8 : Inner_Array;
+         Arr9 : Inner_Array;
+         Arr10 : Inner_Array;
+         Arr11 : Inner_Array;
+         Arr12 : Inner_Array;
+         Arr13 : Inner_Array;
+         Arr14 : Inner_Array;
+         Arr15 : Inner_Array;
+         Arr16 : Inner_Array;
+         Arr17 : Inner_Array;
+         Arr18 : Inner_Array;
+         Arr19 : Inner_Array;
+         Arr20 : Inner_Array;
          V1 : Integer;
          V2 : Natural;
          V3 : Positive;
