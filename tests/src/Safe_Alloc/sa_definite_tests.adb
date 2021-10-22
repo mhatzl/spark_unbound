@@ -1,4 +1,4 @@
-with Safe_Alloc;
+with Spark_Unbound.Safe_Alloc;
 with AUnit.Assertions; use AUnit.Assertions;
 with Ada.Exceptions;
 
@@ -35,7 +35,7 @@ package body SA_Definite_Tests is
       
       type Record_Acc is access Alloc_Record;
         
-      package Record_Alloc is new Safe_Alloc.Definite(T => Alloc_Record, T_Acc => Record_Acc);
+      package Record_Alloc is new Spark_Unbound.Safe_Alloc.Definite(T => Alloc_Record, T_Acc => Record_Acc);
       Rec_Acc : Record_Acc;
       Storage_Error_Forced : Boolean := False;
       

@@ -1,4 +1,8 @@
-# spark_unbound ![Main Workflow](https://github.com/mhatzl/spark_unbound/actions/workflows/main_ubuntu.yml/badge.svg?branch=main)![Documentation](https://github.com/mhatzl/spark_unbound/actions/workflows/generate_doc.yml/badge.svg?branch=main)
+# spark_unbound
+
+![Build and Prove](https://github.com/mhatzl/spark_unbound/actions/workflows/build_prove.yml/badge.svg?branch=main)
+![Tests](https://github.com/mhatzl/spark_unbound/actions/workflows/run_tests.yml/badge.svg?branch=main)
+![Generate Documentation](https://github.com/mhatzl/spark_unbound/actions/workflows/generate_doc.yml/badge.svg?branch=main)
 
 Spark_Unbound offers generic unbound data structures in *Ada-Spark*.
 All data structures are proven with *Spark* and the allocation handles `Storage_Error` internally,
@@ -14,7 +18,7 @@ Since *Spark* does not prove generics directly, some instances are used per data
 
 **Note:** Currently, **Unbound_Array** is the only supported unbound data structure.
 
-This data structure is intended as a safe replacement of `Ada.Containers.Vector`
+This data structure is defined in the [`Spark_Unbound.Arrays`](/src/spark_unbound-arrays.ads) package with according functions and procedures and is intended as a safe replacement of `Ada.Containers.Vector`
 with notable restrictions for creating `Unbound_Array`s and removing the `Cursor` type.
 All procedures that might fail have a `Success` output that states if the execution was successful.
 
@@ -39,7 +43,7 @@ that handles `Storage_Error` and returns `null` in that case.
 
 # Tests
 
-Tests are set up in the `tests` subdirectory using `AUnit` to verify the `Safe_Alloc` part that is not in *Spark*
+Tests are set up in the `tests` subdirectory using [AUnit](https://github.com/AdaCore/aunit) to verify the `Safe_Alloc` part that is not in *Spark*
 and some functionality of every data structure to serve as a kind of usage guide.
 
 To run tests manually, move to the `tests` directory and run `alr run`.

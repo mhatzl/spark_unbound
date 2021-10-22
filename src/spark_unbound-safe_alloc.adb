@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package body Safe_Alloc with SPARK_Mode is
+package body Spark_Unbound.Safe_Alloc with SPARK_Mode is
 
    package body Definite with SPARK_Mode is
       
@@ -39,4 +39,4 @@ package body Safe_Alloc with SPARK_Mode is
       
    end Arrays;
    
-end Safe_Alloc;
+end Spark_Unbound.Safe_Alloc;

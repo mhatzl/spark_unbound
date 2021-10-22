@@ -1,4 +1,4 @@
-with Safe_Alloc;
+with Spark_Unbound.Safe_Alloc;
 with AUnit.Assertions; use AUnit.Assertions;
 with Ada.Exceptions;
 
@@ -8,7 +8,7 @@ package body SA_Arrays_Tests is
    is
       type Array_Type is array (Integer range <>) of Integer;
       type Array_Acc is access Array_Type;
-      package Int_Arrays is new Safe_Alloc.Arrays(Element_Type => Integer, Index_Type => Integer, Array_Type => Array_Type, Array_Type_Acc => Array_Acc);
+      package Int_Arrays is new Spark_Unbound.Safe_Alloc.Arrays(Element_Type => Integer, Index_Type => Integer, Array_Type => Array_Type, Array_Type_Acc => Array_Acc);
       Arr_Acc : Array_Acc;
       Array_Last : Integer := 1_000_000_000;
       Storage_Error_Forced : Boolean := False;

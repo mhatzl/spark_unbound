@@ -1,0 +1,55 @@
+# Runs all tests for Spark_Unbound
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    env:
+      TEST_DIR: tests
+      RESULT_FILE: results.txt
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - uses: ada-actions/toolchain@ce2021
+        with:
+          distrib: community
+          
+      - uses: alire-project/setup-alire@latest-stable
+
+      - name: Set alr toolchain 
+        run: |
+          cd $TEST_DIR
+          alr toolchain --disable-assistant
+          alr toolchain --select gnat_external
+      
+      - name: Alire build
+        run: |
+          cd $TEST_DIR
+          alr build
+      
+      # Run tests and write result to results.txt
+      - name: Run tests
+        run: |
+          cd $TEST_DIR
+          alr run | tee $RESULT_FILE
+
+      # Needed analysis to fail action on failed tests
+      - name: Analyse results
+        run: |
+          cat $RESULT_FILE;
+          FAILURES=`sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE | grep '^[^0]' -c`
+          UNEXPECTED=`sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE | grep '^[^0]' -c`
+          if [ $FAILURES != 0 ]; then echo "Tests failed!"; exit 1; fi
+          if [ $UNEXPECTED != 0 ]; then echo "Unexpected test errors"; exit 2; fi
+          

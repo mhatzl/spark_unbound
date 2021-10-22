@@ -1,6 +1,8 @@
-package body Unbound_Array with SPARK_Mode is
+with Spark_Unbound.Safe_Alloc;
+
+package body Spark_Unbound.Arrays with SPARK_Mode is
    
-   package Array_Alloc is new Safe_Alloc.Arrays(Element_Type => Element_Type, Index_Type => Index_Type, Array_Type => Array_Type, Array_Type_Acc => Array_Acc);
+   package Array_Alloc is new Spark_Unbound.Safe_Alloc.Arrays(Element_Type => Element_Type, Index_Type => Index_Type, Array_Type => Array_Type, Array_Type_Acc => Array_Acc);
    
    
    function Get_Capacity_Offset (Offset : Positive) return Index_Type
@@ -11,10 +13,10 @@ package body Unbound_Array with SPARK_Mode is
    end Get_Capacity_Offset;
       
    
-   function To_Unbound_Array (Initial_Capacity : Positive; Default_Item : Element_Type) return Unbound_Array_Record
+   function To_Unbound_Array (Initial_Capacity : Positive; Default_Item : Element_Type) return Unbound_Array
    is
       Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => Index_Type'First, Last => Get_Capacity_Offset(Initial_Capacity));
-      Unbound_Arr : Unbound_Array_Record := Unbound_Array_Record'(Last => No_Index, Arr => Arr_Acc);
+      Unbound_Arr : Unbound_Array := Unbound_Array'(Last => No_Index, Arr => Arr_Acc);
    begin
       if Unbound_Arr.Arr /= null then
          for I in Unbound_Arr.Arr.all'First .. Unbound_Arr.Arr.all'Last loop
@@ -29,7 +31,7 @@ package body Unbound_Array with SPARK_Mode is
    end To_Unbound_Array;
    
    
-   function "=" (Left, Right : Unbound_Array_Record) return Boolean
+   function "=" (Left, Right : Unbound_Array) return Boolean
    is
    begin
       if Left.Arr = null and then Right.Arr = null then
@@ -55,7 +57,7 @@ package body Unbound_Array with SPARK_Mode is
    end "=";
 
    
-   function Capacity (Self : Unbound_Array_Record) return Natural
+   function Capacity (Self : Unbound_Array) return Natural
    is
    begin
       if Self.Arr = null then
@@ -66,13 +68,13 @@ package body Unbound_Array with SPARK_Mode is
    end Capacity;
 
    
-   --  procedure Reserve_Capacity (Self : in out Unbound_Array_Record; Cap : in Count_Type; Success: out Boolean) is
+   --  procedure Reserve_Capacity (Self : in out Unbound_Array; Cap : in Count_Type; Success: out Boolean) is
    --  begin
    --     null;
    --  end Reserve_Capacity;
 
    
-   procedure Shrink (Self : in out Unbound_Array_Record; New_Capacity : Natural; Success : out Boolean)
+   procedure Shrink (Self : in out Unbound_Array; New_Capacity : Natural; Success : out Boolean)
    is
    begin
       if New_Capacity = Natural'First then
@@ -87,7 +89,7 @@ package body Unbound_Array with SPARK_Mode is
       
       declare
          Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => First_Index(Self), Last => Get_Capacity_Offset(Positive(New_Capacity)));
-         Tmp : Unbound_Array_Record := Unbound_Array_Record'(Last => No_Index, Arr => Arr_Acc);
+         Tmp : Unbound_Array := Unbound_Array'(Last => No_Index, Arr => Arr_Acc);
       begin   
          if Tmp.Arr = null then
             Success := False;
@@ -115,7 +117,7 @@ package body Unbound_Array with SPARK_Mode is
    end Shrink;
    
       
-   function Length (Self : Unbound_Array_Record) return Natural
+   function Length (Self : Unbound_Array) return Natural
    is
    begin
       if Last_Index(Self) = No_Index then
@@ -126,28 +128,28 @@ package body Unbound_Array with SPARK_Mode is
    end Length;
 
    
-   function Is_Empty (Self : Unbound_Array_Record) return Boolean
+   function Is_Empty (Self : Unbound_Array) return Boolean
    is
    begin
       return Last_Index(Self) = No_Index;      
    end Is_Empty;
    
    
-   procedure Clear (Self : in out Unbound_Array_Record) is
+   procedure Clear (Self : in out Unbound_Array) is
    begin
       Self.Last := No_Index;
       Array_Alloc.Free(Self.Arr);
    end Clear;
    
    
-   function Element (Self : Unbound_Array_Record; Index : Index_Type) return Element_Type
+   function Element (Self : Unbound_Array; Index : Index_Type) return Element_Type
    is
    begin
       return Self.Arr.all(Index);
    end Element;
    
    
-   procedure Replace_Element (Self : in out Unbound_Array_Record; Index : in Index_Type; New_Item : in Element_Type)
+   procedure Replace_Element (Self : in out Unbound_Array; Index : in Index_Type; New_Item : in Element_Type)
    is
    begin
       Self.Arr.all(Index) := New_Item;
@@ -155,7 +157,7 @@ package body Unbound_Array with SPARK_Mode is
 
    
    --  procedure Update_Element
-   --    (Self : in out Unbound_Array_Record;
+   --    (Self : in out Unbound_Array;
    --     Index     : in     Index_Type;
    --     Process   : not null access procedure (Process_Element : in out Element_Type)) is
    --  begin
@@ -163,7 +165,7 @@ package body Unbound_Array with SPARK_Mode is
    --  end Update_Element;
 
    
-   procedure Copy (Target : out Unbound_Array_Record; Source : Unbound_Array_Record; Success: out Boolean)
+   procedure Copy (Target : out Unbound_Array; Source : Unbound_Array; Success: out Boolean)
    is
    begin
       Target.Last := No_Index; 
@@ -190,7 +192,7 @@ package body Unbound_Array with SPARK_Mode is
    end Copy;
    
    
-   procedure Move (Target : in out Unbound_Array_Record; Source : in out Unbound_Array_Record)
+   procedure Move (Target : in out Unbound_Array; Source : in out Unbound_Array)
    is
    begin
       for I in First_Index(Source) .. Last_Index(Source) loop
@@ -208,7 +210,7 @@ package body Unbound_Array with SPARK_Mode is
    end Move;
    
    
-   procedure Append (Self : in out Unbound_Array_Record; New_Item : in Element_Type; Success: out Boolean)
+   procedure Append (Self : in out Unbound_Array; New_Item : in Element_Type; Success: out Boolean)
    is
    begin
       if Last_Index(Self) < Self.Arr.all'Last then
@@ -272,7 +274,7 @@ package body Unbound_Array with SPARK_Mode is
    end Append;
       
    
-   --  procedure Delete (Self : in out Unbound_Array_Record;
+   --  procedure Delete (Self : in out Unbound_Array;
    --                    Index     : in     Extended_Index;
    --                    Count     : in     Positive := 1) is
    --  begin
@@ -280,7 +282,7 @@ package body Unbound_Array with SPARK_Mode is
    --  end Delete;
    
    
-   procedure Delete_Last (Self : in out Unbound_Array_Record; Count : in Positive := 1)
+   procedure Delete_Last (Self : in out Unbound_Array; Count : in Positive := 1)
    is
    begin
       -- Actually not deleting anything, but moving values out of scope
@@ -288,14 +290,14 @@ package body Unbound_Array with SPARK_Mode is
    end;
       
    
-   function First_Element (Self : Unbound_Array_Record) return Element_Type
+   function First_Element (Self : Unbound_Array) return Element_Type
    is
    begin
       return Self.Arr.all(First_Index(Self));
    end First_Element;
 
    
-   function First_Index (Self : Unbound_Array_Record) return Index_Type
+   function First_Index (Self : Unbound_Array) return Index_Type
    is
    begin
       if Self.Arr = null then
@@ -306,21 +308,21 @@ package body Unbound_Array with SPARK_Mode is
    end First_Index;
         
    
-   function Last_Index (Self : Unbound_Array_Record) return Extended_Index
+   function Last_Index (Self : Unbound_Array) return Extended_Index
    is
    begin
       return Self.Last;
    end Last_Index;
    
    
-   function Last_Element (Self : Unbound_Array_Record) return Element_Type
+   function Last_Element (Self : Unbound_Array) return Element_Type
    is
    begin
       return Self.Arr.all(Last_Index(Self));
    end Last_Element;
 
    
-   function Find_Index (Self : Unbound_Array_Record; Item : Element_Type; Index : Index_Type := Index_Type'First) return Extended_Index
+   function Find_Index (Self : Unbound_Array; Item : Element_Type; Index : Index_Type := Index_Type'First) return Extended_Index
    is
    begin
       if Last_Index(Self) = No_Index then
@@ -338,7 +340,7 @@ package body Unbound_Array with SPARK_Mode is
    end Find_Index;
     
    
-   function Contains (Self : Unbound_Array_Record; Item : Element_Type; Index : Index_Type := Index_Type'First) return Boolean
+   function Contains (Self : Unbound_Array; Item : Element_Type; Index : Index_Type := Index_Type'First) return Boolean
    is
    begin
       if Self.Arr = null or else Self.Last = No_Index then
@@ -396,4 +398,4 @@ package body Unbound_Array with SPARK_Mode is
    end Ghost_Arr_Length;
    
    
-end Unbound_Array;
+end Spark_Unbound.Arrays;

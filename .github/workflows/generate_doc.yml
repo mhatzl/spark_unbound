@@ -5,12 +5,9 @@ on:
   push:
     branches: [ main ]
 
-  # Allows to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
 jobs:
   gen-doc:
-    name: Build and generate documentation for Spark_Unbound
+    name: Generate Documentation
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +19,7 @@ jobs:
           
       - uses: alire-project/setup-alire@latest-stable
 
-      - name: Set alr toolchain manually
+      - name: Set alr toolchain
         run: |
           alr toolchain --disable-assistant
           alr toolchain --select gnat_external

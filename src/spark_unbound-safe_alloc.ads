@@ -5,7 +5,7 @@
 --- Package containing two generic packages for safe heap allocation.
 --- No `Storage_Error` is propagated if the heap allocation failed.
 ---
-package Safe_Alloc with SPARK_Mode is
+package Spark_Unbound.Safe_Alloc with SPARK_Mode is
    
    --- @summary
    --- Generic package for safe heap allocation of type `T` whose size is known at compile time. 
@@ -59,4 +59,4 @@ package Safe_Alloc with SPARK_Mode is
       
    end Arrays;
    
-end Safe_Alloc;
+end Spark_Unbound.Safe_Alloc;

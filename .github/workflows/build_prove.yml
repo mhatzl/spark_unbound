@@ -1,0 +1,37 @@
+# Builds and Proves Spark_Unbound
+name: Build-Prove
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-prove:
+    name: Build and Prove
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+      
+      - uses: ada-actions/toolchain@ce2021
+        with:
+          distrib: community
+          
+      - uses: alire-project/setup-alire@latest-stable
+
+      - name: Set alr toolchain
+        run: |
+          alr toolchain --disable-assistant
+          alr toolchain --select gnat_external
+      
+      - name: Alire build
+        run: alr build
+
+      - name: Run GNATprove
+        run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings          
