@@ -52,9 +52,7 @@ jobs:
           cd $TEST_DIR
           cat $RESULT_FILE;
           sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE > $FAILURE_CNT
-          echo "checkpoint 1"
           sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE > $UNEXPECTED_CNT
-          echo "checkpoint 2"
-          if [ `grep '^0' $FAILURE_CNT -c` ]; then echo "Tests failed!"; exit 70; fi
-          if [ `grep '^0' $UNEXPECTED_CNT -c` ]; then echo "Unexpected test errors"; exit 85; fi
+          if [ `grep '^[^0]' $FAILURE_CNT -c` ]; then echo "Tests failed!"; exit 70; fi
+          if [ `grep '^[^0]' $UNEXPECTED_CNT -c` ]; then echo "Unexpected test errors"; exit 85; fi
           
