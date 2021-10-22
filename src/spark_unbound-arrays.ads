@@ -1,10 +1,10 @@
 with Ada.Numerics.Big_Numbers.Big_Integers; use Ada.Numerics.Big_Numbers.Big_Integers;
 
 --- @summary
---- Package `Unbound_Array is intended as a safe and proven alternative to `Ada.Containers.Vector`.
+--- This package is intended as a safe and proven alternative to `Ada.Containers.Vector`.
 ---
 --- @description
---- The Unbound_Array` offers proven functions/procedures that are inspired by the `Ada.Containers.Vector` package.
+--- This package offers proven functions/procedures for an unbound array that are inspired by the `Ada.Containers.Vector` package.
 ---
 --- Note: The range of `Index_Type` must be smaller than `Natural'Range_Length` since `Capacity' and `Length` return type `Natural`.
 generic

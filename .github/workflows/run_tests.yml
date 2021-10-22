@@ -49,7 +49,7 @@ jobs:
         run: |
           cd $TEST_DIR
           cat $RESULT_FILE;
-          sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE | grep '^[^0]' -c
+          sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE
           echo "checkpoint 1"
           sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE | grep '^[^0]' -c
           echo "checkpoint 2"
