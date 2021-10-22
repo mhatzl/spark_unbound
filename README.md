@@ -56,4 +56,6 @@ Since I want to participate in the *Crate of the Year*-Award, I will not accept 
 
 # License
 
+MIT Licensed
 
+**Note:** If you use this library somewhere, sending me a private message or so would be really nice 🙂

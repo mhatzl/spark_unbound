@@ -34,7 +34,6 @@ jobs:
         run: alr build
 
 
-jobs:
   prove:
     name: Prove
     runs-on: ubuntu-latest
