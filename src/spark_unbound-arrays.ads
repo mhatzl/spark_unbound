@@ -57,17 +57,14 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    -- Unbound_Array creations ------------------------------------------------------------------------------
    
    --- Sets up a new `Unbound_Array` with `Initial_Capacity` as capacity.
-   --- If an array is allocated, Default_Item is set for every entry.
    ---
-   --- Complexity: O(n) => `Default_Item` is set for all entries of the array, but allocation might fail before.
+   --- Complexity: O(1) => Only allocates the array without setting any value
    --- @param Initial_Capacity Tries to allocate an `Unbound_Array` with `Capacity(To_Unbound_Array'Result) = Initial_Capacity`.
-   --- @param Default_Item All items of the allocated array are set to `Default_Item`.
    --- @return `Unbound_Array` with `Capacity(To_Unbound_Array'Result) = Initial_Capacity` if allocation was successful, or `To_Unbound_Array'Result.Arr = null`.
-   function To_Unbound_Array (Initial_Capacity : Positive; Default_Item : Element_Type) return Unbound_Array
+   function To_Unbound_Array (Initial_Capacity : Positive) return Unbound_Array
      with Pre => Ghost_In_Index_Range(Initial_Capacity),
             Post => (if To_Unbound_Array'Result.Arr /= null then Capacity(To_Unbound_Array'Result) = Natural(Initial_Capacity)
                        and then To_Unbound_Array'Result.Arr.all'First = Index_Type'First and then To_Unbound_Array'Result.Arr.all'Last = Get_Capacity_Offset(Initial_Capacity)
-                       and then (for all I in To_Unbound_Array'Result.Arr.all'First .. To_Unbound_Array'Result.Arr.all'Last => To_Unbound_Array'Result.Arr.all(I) = Default_Item)
                      else Capacity(To_Unbound_Array'Result) = Natural'First);
    
    
@@ -238,7 +235,7 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    ---
    --- Note: The underlying array of `Self` is tried to be increased automatically if `Capacity(Self) = Length(Self)`.
    ---
-   --- Complexity: O(log(n)) => `Capacity(Self)` is tried to be doubled if `Capacity(Self) = Length(Self)` is reached.
+   --- Complexity: O(n) => `Capacity(Self)` is tried to be doubled if `Capacity(Self) = Length(Self)` is reached.
    --- @param Self Instance of an `Unbound_Array`.
    --- @param New_Item Element that is appended to `Self` if `Success = True`.
    --- @param Success `True` if `New_Item` got appended to `Self`.

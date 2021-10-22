@@ -18,7 +18,7 @@ package body UA_Append_Tests is
    procedure TestAppend_WithEnoughCapacity_ResultAppended(T : in out Test_Fixture)
    is
       package UA_Integer is new Spark_Unbound.Arrays(Element_Type => Integer, Index_Type => Positive);
-      Test_UA : UA_Integer.Unbound_Array := UA_Integer.To_Unbound_Array(Initial_Capacity => 10, Default_Item => 0);
+      Test_UA : UA_Integer.Unbound_Array := UA_Integer.To_Unbound_Array(Initial_Capacity => 10);
       Success : Boolean;
    begin
       UA_Integer.Append(Test_UA, T.V1, Success);
@@ -42,7 +42,7 @@ package body UA_Append_Tests is
    procedure TestAppend_WithSmallCapacity_ResultAppended(T : in out Test_Fixture)
    is
       package UA_Integer is new Spark_Unbound.Arrays(Element_Type => Integer, Index_Type => Positive);
-      Test_UA : UA_Integer.Unbound_Array := UA_Integer.To_Unbound_Array(Initial_Capacity => 3, Default_Item => 0); -- Note the low capacity
+      Test_UA : UA_Integer.Unbound_Array := UA_Integer.To_Unbound_Array(Initial_Capacity => 3); -- Note the low capacity
       Success : Boolean;
    begin      
       UA_Integer.Append(Test_UA, T.V1, Success);
@@ -72,7 +72,7 @@ package body UA_Append_Tests is
    is
       type Small_Index is range 0 .. 2;  -- Note: Type only allows 3 values
       package UA_Integer is new Spark_Unbound.Arrays(Element_Type => Integer, Index_Type => Small_Index);
-      Test_UA : UA_Integer.Unbound_Array := UA_Integer.To_Unbound_Array(Initial_Capacity => 3, Default_Item => 0);
+      Test_UA : UA_Integer.Unbound_Array := UA_Integer.To_Unbound_Array(Initial_Capacity => 3);
       Success : Boolean;
    begin
       UA_Integer.Append(Test_UA, T.V1, Success);

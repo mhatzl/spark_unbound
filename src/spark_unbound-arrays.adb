@@ -13,20 +13,11 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    end Get_Capacity_Offset;
       
    
-   function To_Unbound_Array (Initial_Capacity : Positive; Default_Item : Element_Type) return Unbound_Array
+   function To_Unbound_Array (Initial_Capacity : Positive) return Unbound_Array
    is
       Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => Index_Type'First, Last => Get_Capacity_Offset(Initial_Capacity));
       Unbound_Arr : Unbound_Array := Unbound_Array'(Last => No_Index, Arr => Arr_Acc);
    begin
-      if Unbound_Arr.Arr /= null then
-         for I in Unbound_Arr.Arr.all'First .. Unbound_Arr.Arr.all'Last loop
-            Unbound_Arr.Arr.all(I) := Default_Item;
-            pragma Loop_Invariant (for all P in Unbound_Arr.Arr.all'First .. I => Unbound_Arr.Arr.all(P) = Default_Item);
-         end loop;
-         
-         pragma Assert (Unbound_Arr.Arr.all'Last = Get_Capacity_Offset(Initial_Capacity));
-      end if;
-      
       return Unbound_Arr;
    end To_Unbound_Array;
    
