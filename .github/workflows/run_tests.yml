@@ -52,6 +52,7 @@ jobs:
           sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE | grep '^[^0]' -c
           sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE | grep '^[^0]' -c
           FAILURES=`sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE | grep '^[^0]' -c`
+          echo Failures=$FAILURES
           UNEXPECTED=`sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE | grep '^[^0]' -c`
           echo Failures=$FAILURES Unexpected=$UNEXPECTED
           if [ $FAILURES != 0 ]; then echo "Tests failed!"; exit 70; fi
