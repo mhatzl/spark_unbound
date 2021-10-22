@@ -22,7 +22,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
       - uses: ada-actions/toolchain@ce2021
         with:
           distrib: community
@@ -53,6 +56,5 @@ jobs:
           cat $RESULT_FILE;
           sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE | grep '^[^0]' -c > $FAILURE_CNT
           sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE | grep '^[^0]' -c > $UNEXPECTED_CNT
-          if [ `cat $FAILURE_CNT` != 0 ]; then echo "Tests failed!"; exit 70; fi
-          if [ `cat $UNEXPECTED_CNT` != 0 ]; then echo "Unexpected test errors"; exit 85; fi
-          
+          python test_validation.py $FAILURE_CNT $UNEXPECTED_CNT
+             
