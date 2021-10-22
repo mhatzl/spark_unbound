@@ -54,7 +54,5 @@ jobs:
         run: |
           cd $TEST_DIR
           cat $RESULT_FILE;
-          sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE | grep '^[^0]' -c > $FAILURE_CNT
-          sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE | grep '^[^0]' -c > $UNEXPECTED_CNT
-          python test_validation.py $FAILURE_CNT $UNEXPECTED_CNT
+          python test_validation.py $RESULT_FILE
              
