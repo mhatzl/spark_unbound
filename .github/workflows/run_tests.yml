@@ -10,12 +10,15 @@ on:
   # Allows to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: tests
+
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
     env:
-      TEST_DIR: tests
       RESULT_FILE: results.txt
       FAILURE_CNT: failures.txt
       UNEXPECTED_CNT: unexpected.txt
@@ -32,27 +35,23 @@ jobs:
           
       - uses: alire-project/setup-alire@latest-stable
 
-      - name: Set alr toolchain 
+      - name: Set alr toolchain
         run: |
-          cd $TEST_DIR
           alr toolchain --disable-assistant
           alr toolchain --select gnat_external
       
       - name: Alire build
         run: |
-          cd $TEST_DIR
           alr build
       
       # Run tests and write result to results.txt
       - name: Run tests
         run: |
-          cd $TEST_DIR
           alr run | tee $RESULT_FILE
 
       # Needed analysis to fail action on failed tests
       - name: Analyse results
         run: |
-          cd $TEST_DIR
           cat $RESULT_FILE;
           python test_validation.py $RESULT_FILE
              

@@ -1,12 +1,12 @@
 name = "spark_unbound"
 description = "Unbound data structures in Ada-Spark"
-version = "0.1.2"
+version = "0.2.0"
 
 authors = ["Manuel Hatzl"]
 maintainers = ["Manuel Hatzl <hatzlmanuel@outlook.com>"]
 maintainers-logins = ["mhatzl"]
 website = "https://github.com/mhatzl/spark_unbound"
 
-licenses = "GPL-3.0-or-later"
+licenses = "MIT"
 
 tags = ["spark", "unbound"]

@@ -56,5 +56,4 @@ Since I want to participate in the *Crate of the Year*-Award, I will not accept 
 
 # License
 
-I am using GPS Community Edition 2021 which mandates GPL as far as I understood.
-For a hobbyist/student, GNATpro is too expensive, but if I am able to afford it at some point, changing this project to dual licensing or MIT is planned.
+

@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-prove:
+  build:
     name: Build and Prove
     runs-on: ubuntu-latest
 
@@ -33,5 +33,35 @@ jobs:
       - name: Alire build
         run: alr build
 
+
+jobs:
+  prove:
+    name: Prove
+    runs-on: ubuntu-latest
+    needs: build
+    defaults:
+      run:
+        working-directory: tests
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - uses: ada-actions/toolchain@ce2021
+        with:
+          distrib: community
+          
+      - uses: alire-project/setup-alire@latest-stable
+
+      - name: Set alr toolchain
+        run: |
+          alr toolchain --disable-assistant
+          alr toolchain --select gnat_external
+      
+      - name: Alire build
+        run: alr build
+
       - name: Run GNATprove
-        run: gnatprove -Pspark_unbound.gpr --level=4 --proof-warnings          
+        run: |
+          alr printenv --unix
+          eval `alr printenv --unix`
+          gnatprove -Ptests.gpr -j0 -u prove_unbound.adb --level=4 --proof-warnings
