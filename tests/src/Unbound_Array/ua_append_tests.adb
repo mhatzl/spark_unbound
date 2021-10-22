@@ -35,7 +35,9 @@ package body UA_Append_Tests is
       
       UA_Integer.Append(Test_UA, T.V4, Success); 
       Assert(Success, "Appending V4 failed");
-      Assert(UA_Integer.Last_Element(Test_UA) = T.V4, "Appending V4 did not set it as last element");     
+      Assert(UA_Integer.Last_Element(Test_UA) = T.V4, "Appending V4 did not set it as last element");
+      
+      UA_Integer.Clear(Test_UA);
    end;
       
    
@@ -65,6 +67,8 @@ package body UA_Append_Tests is
       UA_Integer.Append(Test_UA, T.V4, Success); 
       Assert(Success, "Appending V4 failed");
       Assert(UA_Integer.Last_Element(Test_UA) = T.V4, "Appending V4 did not set it as last element");
+      
+      UA_Integer.Clear(Test_UA);
    end;
    
       
@@ -96,6 +100,8 @@ package body UA_Append_Tests is
       Assert(not Success, "Appened V4 even though Index_Type exceeded");
       Assert(UA_Integer.Last_Element(Test_UA) /= T.V4, "Appended V4 even though Index_Type limit exceeded");
       Assert(UA_Integer.Last_Element(Test_UA) = T.V3, "V3 not last element after exceeding Index_Type limit");
+      
+      UA_Integer.Clear(Test_UA);
    end;
       
 

@@ -7,6 +7,7 @@ with Ada.Numerics.Big_Numbers.Big_Integers; use Ada.Numerics.Big_Numbers.Big_Int
 --- This package offers proven functions/procedures for an unbound array that are inspired by the `Ada.Containers.Vector` package.
 ---
 --- Note: The range of `Index_Type` must be smaller than `Natural'Range_Length` since `Capacity' and `Length` return type `Natural`.
+--- This is NOT enforced by the compiler!
 generic
    type Element_Type is private;
    type Index_Type is range <>; -- range must be smaller than Natural'Range_Length for overflow prevention (Some kind of compiler restriction would be nice)               
