@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    name: Build and Prove
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
