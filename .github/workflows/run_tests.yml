@@ -51,6 +51,7 @@ jobs:
           cat $RESULT_FILE;
           FAILURES=`sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE | grep '^[^0]' -c`
           UNEXPECTED=`sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE | grep '^[^0]' -c`
-          if [ $FAILURES != 0 ]; then echo "Tests failed!"; exit 1; fi
-          if [ $UNEXPECTED != 0 ]; then echo "Unexpected test errors"; exit 2; fi
+          echo Failures=$FAILURES Unexpected=$UNEXPECTED
+          if [ $FAILURES != 0 ]; then echo "Tests failed!"; exit 70; fi
+          if [ $UNEXPECTED != 0 ]; then echo "Unexpected test errors"; exit 85; fi
           
