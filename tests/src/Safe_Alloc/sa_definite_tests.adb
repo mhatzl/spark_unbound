@@ -6,8 +6,8 @@ package body SA_Definite_Tests is
 
    procedure TestAlloc_WithForcingStorageError_ResultNullReturned(T : in out Test_Fixture)
    is
-      type Inner_Array is array(-90 .. 90) of Integer; -- forced test fail
-      --type Inner_Array is array(-9_00_000_000 .. 9_00_000_000) of Integer;      
+      -- type Inner_Array is array(-90 .. 90) of Integer; -- forced test fail
+      type Inner_Array is array(-9_00_000_000 .. 9_00_000_000) of Integer;      
       type Alloc_Record is record
          Arr1 : Inner_Array;
          Arr2 : Inner_Array;
