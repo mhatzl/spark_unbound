@@ -17,6 +17,8 @@ jobs:
     env:
       TEST_DIR: tests
       RESULT_FILE: results.txt
+      FAILURE_CNT: failures.txt
+      UNEXPECTED_CNT: unexpected.txt
 
     steps:
       - uses: actions/checkout@v2
@@ -49,13 +51,10 @@ jobs:
         run: |
           cd $TEST_DIR
           cat $RESULT_FILE;
-          sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE
+          sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE > $FAILURE_CNT
           echo "checkpoint 1"
-          sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE | grep '^[^0]' -c
+          sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE > $UNEXPECTED_CNT
           echo "checkpoint 2"
-          FAILURES=`sed -e '/Failed Assertions: /!d;  s/Failed Assertions: //' $RESULT_FILE | grep '^[^0]' -c`
-          UNEXPECTED=`sed -e '/Unexpected Errors: /!d;  s/Unexpected Errors: //' $RESULT_FILE | grep '^[^0]' -c`
-          echo Failures=$FAILURES Unexpected=$UNEXPECTED
-          if [ $FAILURES != 0 ]; then echo "Tests failed!"; exit 70; fi
-          if [ $UNEXPECTED != 0 ]; then echo "Unexpected test errors"; exit 85; fi
+          if [ `grep '^0' $FAILURE_CNT -c` ]; then echo "Tests failed!"; exit 70; fi
+          if [ `grep '^0' $UNEXPECTED_CNT -c` ]; then echo "Unexpected test errors"; exit 85; fi
           
