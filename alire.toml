@@ -27,4 +27,4 @@ tags = ["spark", "unbound"]
 
 [[depends-on]]
 # Needed for Ada.Numerics.Big_Numbers
-gnat = "(>=9.3.1 & <2000) | >=2021)"
+gnat = "(>=9.3.1 & <2000) | >=2021"
