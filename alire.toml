@@ -1,6 +1,6 @@
 name = "spark_unbound"
 description = "Unbound data structures in Ada-Spark"
-version = "0.2.0"
+version = "0.2.1"
 
 long-description = """
 Spark_Unbound is a take on providing generic unbound data structures in Spark.
