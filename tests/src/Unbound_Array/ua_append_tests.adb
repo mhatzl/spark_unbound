@@ -35,7 +35,7 @@ package body UA_Append_Tests is
       
       UA_Integer.Append(Test_UA, T.V4, Success); 
       Assert(Success, "Appending V4 failed");
-      Assert(UA_Integer.Last_Element(Test_UA) = T.V4, "Appending V4 did not set it as last element");
+      Assert(UA_Integer.Last_Element(Test_UA) = T.V3, "Appending V4 did not set it as last element");
       
       UA_Integer.Clear(Test_UA);
    end;
