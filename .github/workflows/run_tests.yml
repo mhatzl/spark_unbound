@@ -44,16 +44,6 @@ jobs:
         run: |
           alr build
       
-      # Run tests and write result to results.txt
       - name: Run tests
         run: |
           alr run 
-          
-      #| tee $RESULT_FILE
-
-      # Needed analysis to fail action on failed tests
-      #- name: Analyse results
-      #  run: |
-      #    cat $RESULT_FILE;
-      #    python test_validation.py $RESULT_FILE
-             
