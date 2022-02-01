@@ -4,14 +4,11 @@
 ![Tests](https://github.com/mhatzl/spark_unbound/actions/workflows/run_tests.yml/badge.svg?branch=main)
 ![Generate Documentation](https://github.com/mhatzl/spark_unbound/actions/workflows/generate_doc.yml/badge.svg?branch=main)
 
-Spark_Unbound offers generic unbound data structures in *Ada-Spark*.
-All data structures are proven with *Spark* and the allocation handles `Storage_Error` internally,
-so only a **Stack Overflow** might happen (Note: Using tools like *GNATstack* can resolve this last error).  
+`Spark_Unbound` offers generic unbound data structures in *Ada-Spark*.
+All data structures are proven with *Spark* to achieve platinum level (functional correctness) and the allocation handles `Storage_Error` internally.
+So only a **Stack Overflow** might happen.
 
-Since *Spark* does not prove generics directly, some instances are used per data structure trying to cover most type ranges.
-
-**Note:** As the chosen instance dictates the conducted proves, it is best to run *GNATprove* on your own instance.
-
+**Note:** Using tools like *GNATstack* can resolve this last error
 
 ## Supported Data Structures
 ### Unbound_Array
@@ -32,6 +29,27 @@ Internally, `Unbound_Array` uses an array that is dynamically allocated and resi
 - The sub-package `Generic_Sorting` is not yet implemented
 - Other functions/procedures available in `Ada.Containers.Vector` might never be implemented
 
+Below is an example on how to use `Unbound_Array`:
+
+~~~Ada
+with Spark_Unbound.Arrays;
+
+procedure Test is
+  package UA_Integer is new Spark_Unbound.Arrays(Element_Type => Integer, Index_Type => Positive);
+  Test_UA : UA_Integer.Unbound_Array := UA_Integer.To_Unbound_Array(Initial_Capacity => 3);
+  Success : Boolean;
+begin
+  -- Fill Array
+  UA_Integer.Append(Test_UA, 1, Success);
+  UA_Integer.Append(Test_UA, 2, Success);
+  UA_Integer.Append(Test_UA, 3, Success);
+
+  -- Now Append() needs to resize
+  UA_Integer.Append(Test_UA, 4, Success);
+end Test;
+~~~
+
+**Note:** You should check for `Success` after every call to `Append()`.
 
 ## Safe Allocation
 
@@ -40,19 +58,78 @@ it is possible to catch `Storage_Error` for heap allocations.
 Since handling exceptions is not supported in *Spark*, the generic package `Safe_Alloc` is a wrapper with a small part not in *Spark*
 that handles `Storage_Error` and returns `null` in that case.
 
+Below is an example on how to use `Safe_Alloc`:
+
+~~~Ada
+with Spark_Unbound.Safe_Alloc;
+
+procedure Test is
+  type Alloc_Record is record
+    V1 : Integer;
+    V2 : Natural;
+    V3 : Positive;
+  end record;
+
+  type Record_Acc is access Alloc_Record;
+          
+  package Record_Alloc is new Spark_Unbound.Safe_Alloc.Definite(T => Alloc_Record, T_Acc => Record_Acc);
+  Rec_Acc : Record_Acc;
+begin
+  Rec_Acc := Record_Alloc.Alloc; -- Note: No `new` is set before 
+
+  -- check if Rec_Acc is NOT null and then do something
+
+  Record_Alloc.Free(Rec_Acc);
+end Test;
+~~~
+
+# Proves
+
+Since *Spark* does not prove generics directly, some instances are used per data structure trying to cover most type ranges.
+Those types are located under [tests/src/prove_unbound.adb]().
+
+The following command executes GNATprove to prove all data structures instantiated in `prove_unbound.adb`:
+
+~~~
+gnatprove -Ptests.gpr -j0 -u prove_unbound.adb --level=4 --proof-warnings
+~~~
+
+**Note:** As the chosen instance dictates the conducted proves, it is best to run *GNATprove* on your own instance.
+
 
 # Tests
 
 Tests are set up in the `tests` subdirectory using [AUnit](https://github.com/AdaCore/aunit) to verify the `Safe_Alloc` part that is not in *Spark*
 and some functionality of every data structure to serve as a kind of usage guide.
 
-To run tests manually, move to the `tests` directory and run `alr run`.
+To run tests manually, move to the `tests` directory and run 
+
+~~~
+alr run
+~~~
+
+# Installation
+
+`Spark_Unbound` is available as crate in the Alire package manager.
+To use the crate in an Alire project, add it with
+
+~~~
+alr with spark_unbound
+~~~
+
+**Note:** To use Alire with GNAT studio, I use a small Python [script](https://github.com/mhatzl/gps_alire) as GPS plugin to automatically set needed environment variables. 
 
 # Contribution
 
 Feedback is very much welcomed as I am very new to Ada.
-Since I want to participate in the *Crate of the Year*-Award, I will not accept any pull request before end of this year to avoid any legal issues.
 
+My focus at the moment is to fix the following GitHub issues:
+
+- [ ] https://github.com/mhatzl/spark_unbound/issues/6
+- [ ] https://github.com/mhatzl/spark_unbound/issues/3
+- [ ] https://github.com/mhatzl/spark_unbound/issues/2
+
+Any help with them is greatly appreciated.
 
 # License
 
