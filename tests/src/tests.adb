@@ -2,17 +2,23 @@ with AUnit.Reporter.Text;
 with AUnit.Run;
 with Unbound_Array_Suite;
 with Safe_Alloc_Suite;
+with GNAT.OS_Lib;
 
 procedure Tests is
+   use type AUnit.Status;
+
    Reporter : AUnit.Reporter.Text.Text_Reporter;
 
-   procedure Unbound_Array_Test_Runner is new AUnit.Run.Test_Runner(Unbound_Array_Suite.Suite);
-   procedure Safe_Alloc_Test_Runner is new AUnit.Run.Test_Runner(Safe_Alloc_Suite.Suite);
+   function Unbound_Array_Test_Runner is new AUnit.Run.Test_Runner_With_Status(Unbound_Array_Suite.Suite);
+   function Safe_Alloc_Test_Runner is new AUnit.Run.Test_Runner_With_Status(Safe_Alloc_Suite.Suite);
 begin
    -- Run Unbound_Array tests
-   Unbound_Array_Test_Runner(Reporter);
+   if Unbound_Array_Test_Runner(Reporter) /= AUnit.Success then
+      GNAT.OS_Lib.OS_Exit(1);
+   end if;
 
    -- Run Safe_Alloc tests
-   Safe_Alloc_Test_Runner(Reporter);
-
+   if Safe_Alloc_Test_Runner(Reporter) /= AUnit.Success then
+      GNAT.OS_Lib.OS_Exit(1);
+   end if;
 end Tests;
