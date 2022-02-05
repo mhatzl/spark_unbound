@@ -19,16 +19,15 @@ is
       Val2 : Positive;
    end record;
 
--- Note: Using type like Float will fail function `Contains` with default `=`
+   type Int_Range is range Integer'First + 1 .. Integer'Last; -- +1 needed for No_Index
 
-   -- This type leads to overflows if used as Index_Type due to Natural only having half the range => Positive is the largest type not resulting in an overflow
-   -- type Smaller_Int is range Integer'First + 1 .. Integer'Last; -- +1 needed for No_Index
-
-   package unbound_record is new Spark_Unbound.Arrays(Element_Type => Test_Record, Index_Type => Positive);
+   package unbound_record is new Spark_Unbound.Arrays(Element_Type => Test_Record, Index_Type => Int_Range);
    test2 : unbound_record.Unbound_Array := unbound_record.To_Unbound_Array(Initial_Capacity => 100);
 
    -- Current Problem: "memory accessed through objects of access type" might not be initialized after elaboration of main program
    -- Note: Default_Component_Value is currently only supported for scalar types so no idea how to solve this
+
+   -- Note: Using type Float will fail function `Contains` with default `=` (equality without delta is a bad idea for float types)
 
 begin
 

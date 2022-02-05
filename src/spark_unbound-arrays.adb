@@ -5,15 +5,15 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    package Array_Alloc is new Spark_Unbound.Safe_Alloc.Arrays(Element_Type => Element_Type, Index_Type => Index_Type, Array_Type => Array_Type, Array_Type_Acc => Array_Acc);
    
    
-   function Get_Capacity_Offset (Offset : Positive) return Index_Type
+   function Get_Capacity_Offset (Offset : Long_Positive) return Index_Type
    is
-      Arr_Offset : Integer := Integer(Offset) - Integer(Positive'First);
+      Arr_Offset : Long_Natural := Long_Natural(Offset) - Long_Natural(Long_Positive'First);
    begin
-      return Index_Type(Integer(Index_Type'First) + Arr_Offset);
+      return Index_Type(Long_Integer(Index_Type'First) + Long_Integer(Arr_Offset));
    end Get_Capacity_Offset;
       
    
-   function To_Unbound_Array (Initial_Capacity : Positive) return Unbound_Array
+   function To_Unbound_Array (Initial_Capacity : Long_Positive) return Unbound_Array
    is
       Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => Index_Type'First, Last => Get_Capacity_Offset(Initial_Capacity));
       Unbound_Arr : Unbound_Array := Unbound_Array'(Last => No_Index, Arr => Arr_Acc);
@@ -48,11 +48,11 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    end "=";
 
    
-   function Capacity (Self : Unbound_Array) return Natural
+   function Capacity (Self : Unbound_Array) return Long_Natural
    is
    begin
       if Self.Arr = null then
-         return Natural'First;
+         return Long_Natural'First;
       end if;
       
       return Self.Arr.all'Length;
@@ -65,10 +65,10 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    --  end Reserve_Capacity;
 
    
-   procedure Shrink (Self : in out Unbound_Array; New_Capacity : Natural; Success : out Boolean)
+   procedure Shrink (Self : in out Unbound_Array; New_Capacity : Long_Natural; Success : out Boolean)
    is
    begin
-      if New_Capacity = Natural'First then
+      if New_Capacity = Long_Natural'First then
          Clear(Self);
          if Self.Arr = null and then Self.Last = No_Index then
             Success := True;
@@ -79,7 +79,7 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
       end if;
       
       declare
-         Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => First_Index(Self), Last => Get_Capacity_Offset(Positive(New_Capacity)));
+         Arr_Acc : Array_Acc := Array_Alloc.Alloc(First => First_Index(Self), Last => Get_Capacity_Offset(Long_Positive(New_Capacity)));
          Tmp : Unbound_Array := Unbound_Array'(Last => No_Index, Arr => Arr_Acc);
       begin   
          if Tmp.Arr = null then
@@ -108,14 +108,14 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    end Shrink;
    
       
-   function Length (Self : Unbound_Array) return Natural
+   function Length (Self : Unbound_Array) return Long_Natural
    is
    begin
       if Last_Index(Self) = No_Index then
-         return Natural'First;
+         return Long_Natural'First;
       end if;
       -- abs() needed since indizes might be negative
-      return Natural(abs(Integer(Last_Index(Self)) - Integer(First_Index(Self))) + 1); -- Last = First leaves room for 1 element
+      return Long_Natural(abs(Long_Integer(Last_Index(Self)) - Long_Integer(First_Index(Self))) + 1); -- Last = First leaves room for 1 element
    end Length;
 
    
@@ -210,10 +210,10 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
          Success := True;
       else
          declare
-            Added_Capacity : Natural := Capacity(Self); -- Try to double array capacity for O(Log(N))
-            Ghost_Added_Capactiy : Natural with Ghost;
+            Added_Capacity : Long_Natural := Capacity(Self); -- Try to double array capacity for O(Log(N))
+            Ghost_Added_Capactiy : Long_Natural with Ghost;
          begin
-            while (Integer(Index_Type'Last) - Added_Capacity) < Integer(Get_Capacity_Offset(Positive(Capacity(Self)))) and then Added_Capacity > Natural'First loop
+            while (Long_Integer(Index_Type'Last) - Long_Integer(Added_Capacity)) < Long_Integer(Get_Capacity_Offset(Long_Positive(Capacity(Self)))) and then Added_Capacity > Long_Natural'First loop
                Ghost_Added_Capactiy := Added_Capacity;
                Added_Capacity := Added_Capacity - 1;
                
@@ -221,12 +221,12 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
             end loop;
             
             declare
-               New_Max_Last : Index_Type := Get_Capacity_Offset(Positive(Capacity(Self) + Added_Capacity));
+               New_Max_Last : Index_Type := Get_Capacity_Offset(Long_Positive(Capacity(Self) + Added_Capacity));
                Ghost_New_Max_Last : Index_Type with Ghost;
                Arr_Acc : Array_Acc := null;
                Tmp_Last : Extended_Index := Self.Last;
             begin
-               while Arr_Acc = null and then New_Max_Last > Get_Capacity_Offset(Positive(Capacity(Self))) loop
+               while Arr_Acc = null and then New_Max_Last > Get_Capacity_Offset(Long_Positive(Capacity(Self))) loop
                   Arr_Acc := Array_Alloc.Alloc(First => Self.Arr.all'First, Last => New_Max_Last);
                   Ghost_New_Max_Last := New_Max_Last;                  
                   New_Max_Last := New_Max_Last - 1;
@@ -234,7 +234,7 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
                   pragma Loop_Invariant (New_Max_Last = Ghost_New_Max_Last - 1);
                   pragma Loop_Invariant (if Arr_Acc /= null then Arr_Acc.all'Last >= Arr_Acc.all'First);
                   pragma Loop_Invariant (if Arr_Acc /= null then Arr_Acc.all'First = First_Index(Self));
-                  pragma Loop_Invariant (if Arr_Acc /= null then Arr_Acc.all'Last > Get_Capacity_Offset(Positive(Capacity(Self))));
+                  pragma Loop_Invariant (if Arr_Acc /= null then Arr_Acc.all'Last > Get_Capacity_Offset(Long_Positive(Capacity(Self))));
                end loop;
                
                if Arr_Acc = null then
@@ -273,11 +273,11 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    --  end Delete;
    
    
-   procedure Delete_Last (Self : in out Unbound_Array; Count : in Positive := 1)
+   procedure Delete_Last (Self : in out Unbound_Array; Count : in Long_Positive := 1)
    is
    begin
       -- Actually not deleting anything, but moving values out of scope
-      Self.Last := Extended_Index(Integer(Self.Last) - Count);
+      Self.Last := Extended_Index(Long_Integer(Self.Last) - Long_Integer(Count));
    end;
       
    
@@ -352,11 +352,11 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    -- Ghost ----------------------------------------------------------------------------------
    
    
-   function Ghost_Acc_Length (Self : Array_Acc) return Natural
+   function Ghost_Acc_Length (Self : Array_Acc) return Long_Natural
    is
    begin
       if Self = null then
-         return Natural'First;
+         return Long_Natural'First;
       end if;
       
       return Self.all'Length;
@@ -382,7 +382,7 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    end Ghost_Arr_Equals;
       
    
-   function Ghost_Arr_Length (Self : Array_Type) return Natural
+   function Ghost_Arr_Length (Self : Array_Type) return Long_Natural
    is
    begin
       return Self'Length;

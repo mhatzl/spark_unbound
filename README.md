@@ -10,24 +10,34 @@ So only a **Stack Overflow** might happen.
 
 **Note:** Using tools like *GNATstack* can resolve this last error
 
+## Added Types
+
+Three additional types are defined in `Spark_Unbound` to allow conversion between large index ranges.
+
+1. `Long_Natural` ... Doubles positive range of `Natural`
+2. `Long_Positive` ... Doubles positive range of `Positive`
+3. `Long_Integer` ... Doubles positive and negative range of `Integer`
+
+Conversion to `Ada.Numerics.Big_Numbers.Big_Integer` is available for all three types.
+
 ## Supported Data Structures
 ### Unbound_Array
 
 **Note:** Currently, **Unbound_Array** is the only supported unbound data structure.
 
-This data structure is defined in the [`Spark_Unbound.Arrays`](/src/spark_unbound-arrays.ads) package with according functions and procedures and is intended as a safe replacement of `Ada.Containers.Vector`
+This data structure is defined in the [`Spark_Unbound.Arrays`](/src/spark_unbound-arrays.ads) package with according functions and procedures and is intended as a safe replacement of `Ada.Containers.Vectors`
 with notable restrictions for creating `Unbound_Array`s and removing the `Cursor` type.
 All procedures that might fail have a `Success` output that states if the execution was successful.
 
 Internally, `Unbound_Array` uses an array that is dynamically allocated and resized on the heap.
 
-**Note:** The maximum length of an `Unbound_Array` is constrained by `Natural'Range_Length` since `Capacity` and `Length` return `Natural`.
+**Note:** The maximum length of an `Unbound_Array` is constrained by `Spark_Unbound.Long_Natural'Range_Length` since `Capacity` and `Length` return `Spark_Unbound.Long_Natural`.
 
 **Current missing functionality:**
 
 - `Insert`, `Prepend`, `Reverse_Elements`, `Swap` and indexed deletion is not yet implemented
 - The sub-package `Generic_Sorting` is not yet implemented
-- Other functions/procedures available in `Ada.Containers.Vector` might never be implemented
+- Other functions/procedures available in `Ada.Containers.Vectors` might never be implemented
 
 Below is an example on how to use `Unbound_Array`:
 
@@ -125,7 +135,6 @@ Feedback is very much welcomed as I am very new to Ada.
 
 My focus at the moment is to fix the following GitHub issues:
 
-- [ ] https://github.com/mhatzl/spark_unbound/issues/6
 - [ ] https://github.com/mhatzl/spark_unbound/issues/3
 - [ ] https://github.com/mhatzl/spark_unbound/issues/2
 

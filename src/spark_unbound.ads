@@ -1,3 +1,5 @@
+with Ada.Numerics.Big_Numbers.Big_Integers; use Ada.Numerics.Big_Numbers.Big_Integers;
+
 --- @summary
 --- The `Spark_Unbound` package contains various unbound generic data structures.
 --- All data structures are formally proven by Spark and `Storage_Error` for heap allocation is handled internally.
@@ -11,5 +13,17 @@
 ---
 --- The source code is MIT licensed and can be found at: https://github.com/mhatzl/spark_unbound
 package Spark_Unbound with SPARK_Mode is
+
+   type Long_Natural is range 0 .. Integer'Base'Range_Length**2; -- creates full unsigned integer type
+
+   package Long_Natural_To_Big is new Signed_Conversions(Int => Long_Natural);
+
+   type Long_Positive is range 1 .. Long_Natural'Last;
+
+   package Long_Positive_To_Big is new Signed_Conversions(Int => Long_Positive);
+
+   type Long_Integer is range -Integer'Base'Range_Length**2 .. Integer'Base'Range_Length**2;
+
+   package Long_Integer_To_Big is new Signed_Conversions(Int => Long_Integer);
 
 end Spark_Unbound;

@@ -10,7 +10,7 @@ with Ada.Numerics.Big_Numbers.Big_Integers; use Ada.Numerics.Big_Numbers.Big_Int
 --- This is NOT enforced by the compiler!
 generic
    type Element_Type is private;
-   type Index_Type is range <>; -- range must be smaller than Natural'Range_Length for overflow prevention (Some kind of compiler restriction would be nice)               
+   type Index_Type is range <>;           
    with function "=" (Left, Right : Element_Type) return Boolean is <>;
    --- Function used to compare elements inside `Unbound_Array`s.
    --- @param Left Element that is compared against `Right`.
@@ -18,6 +18,10 @@ generic
    --- @return `True` if `Left` and `Right` are equal.
 
 package Spark_Unbound.Arrays with SPARK_Mode is
+   
+   use Spark_Unbound;
+   
+   package Index_Type_To_Big is new Signed_Conversions(Int => Index_Type);
    
    -- needed to use `Self.Arr.all'Old` to prove some contracts
    pragma Unevaluated_Use_Of_Old (Allow); 
@@ -29,7 +33,7 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    subtype Extended_Index is
      Index_Type'Base range 
        Index_Type'First-1 .. Index_Type'Min (Index_Type'Base'Last - 1, Index_Type'Last) + 1;
-   
+
    --- Index used to indicate 'out of range`.
    No_Index : constant Extended_Index := Extended_Index'First;
    
@@ -62,11 +66,11 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- Complexity: O(1) => Only allocates the array without setting any value
    --- @param Initial_Capacity Tries to allocate an `Unbound_Array` with `Capacity(To_Unbound_Array'Result) = Initial_Capacity`.
    --- @return `Unbound_Array` with `Capacity(To_Unbound_Array'Result) = Initial_Capacity` if allocation was successful, or `To_Unbound_Array'Result.Arr = null`.
-   function To_Unbound_Array (Initial_Capacity : Positive) return Unbound_Array
+   function To_Unbound_Array (Initial_Capacity : Long_Positive) return Unbound_Array
      with Pre => Ghost_In_Index_Range(Initial_Capacity),
-            Post => (if To_Unbound_Array'Result.Arr /= null then Capacity(To_Unbound_Array'Result) = Natural(Initial_Capacity)
+            Post => (if To_Unbound_Array'Result.Arr /= null then Capacity(To_Unbound_Array'Result) = Long_Natural(Initial_Capacity)
                        and then To_Unbound_Array'Result.Arr.all'First = Index_Type'First and then To_Unbound_Array'Result.Arr.all'Last = Get_Capacity_Offset(Initial_Capacity)
-                     else Capacity(To_Unbound_Array'Result) = Natural'First);
+                     else Capacity(To_Unbound_Array'Result) = Long_Natural'First);
    
    
    -- Procedures/Functions ----------------------------------------------------------------------------------
@@ -76,9 +80,10 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- Complexity: O(1) => Integer calculation.
    --- @param Offset The vallue added to `Index_Type'First`.
    --- @return `Offset + Index_Type'First`.
-   function Get_Capacity_Offset (Offset : Positive) return Index_Type
+   function Get_Capacity_Offset (Offset : Long_Positive) return Index_Type
      with Pre => Ghost_In_Index_Range(Offset),
-     Post => Get_Capacity_Offset'Result = Index_Type(Integer(Index_Type'First) + (Integer(Offset) - Integer(Positive'First)));
+     Post => Index_Type_To_Big.To_Big_Integer(Get_Capacity_Offset'Result)
+       = Index_Type_To_Big.To_Big_Integer(Index_Type'First) + (Long_Positive_To_Big.To_Big_Integer(Offset) - Long_Positive_To_Big.To_Big_Integer(Long_Positive'First));
    
    --- This function compares two `Unbound_Array`s by comparing each element (using the generic formal equality operator)
    --- if `Left` and `Right` have the same length.
@@ -106,8 +111,8 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- Complexity: O(1) => Size of underlying array is always known.
    --- @param Self Instance of an `Unbound_Array`.
    --- @return The capacity of `Self` (More precise: The length of the underlying allocated array).
-   function Capacity (Self : Unbound_Array) return Natural
-     with Post => (if Self.Arr /= null then Capacity'Result = Ghost_Acc_Length(Self.Arr) else Capacity'Result = Natural'First);
+   function Capacity (Self : Unbound_Array) return Long_Natural
+     with Post => (if Self.Arr /= null then Capacity'Result = Ghost_Acc_Length(Self.Arr) else Capacity'Result = Long_Natural'First);
    
    
    --  procedure Reserve_Capacity (Self : in out Unbound_Array; New_Capacity : in Positive; Default_Item : Element_Type; Success: out Boolean)
@@ -123,9 +128,9 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- @param Self Instance of an `Unbound_Array`.
    --- @param New_Capacity The new capacity `Self` should be shrunken to.
    --- @param Success `True` if `Self` got shrunken or `False` if the content of `Self` could not be moved.
-   procedure Shrink (Self : in out Unbound_Array; New_Capacity : Natural; Success : out Boolean)
+   procedure Shrink (Self : in out Unbound_Array; New_Capacity : Long_Natural; Success : out Boolean)
      with Pre => Self.Arr /= null and then New_Capacity >= Length(Self) and then New_Capacity < Capacity(Self),
-     Post => (If New_Capacity = 0 and then Success then Capacity(Self) = Natural'First and then Last_Index(Self) = No_Index
+     Post => (If New_Capacity = 0 and then Success then Capacity(Self) = Long_Natural'First and then Last_Index(Self) = No_Index
               else Self.Arr /= null and then Self.Last = Self.Last'Old
               and then (if Self.Last'Old > No_Index then Ghost_Arr_Equals(Left => Self.Arr.all, Right => Self.Arr.all'Old, First => First_Index(Self), Last => Last_Index(Self)))
               and then (if Success then Capacity(Self) = New_Capacity));
@@ -135,10 +140,10 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- Complexity: O(1) => First_Index(Self) and Last_Index(Self) is always known.
    --- @param Self Instance of an `Unbound_Array`.
    --- @return Number of elements inside `Self`.
-   function Length (Self : Unbound_Array) return Natural
-     with Post => (if Last_Index(Self) = No_Index or else Capacity(Self) = Natural'First then Length'Result = Natural'First
-                     else (if First_Index(Self) > Last_Index(Self) then Length'Result = Natural'First
-                     else Length'Result = Natural(abs(Integer(Last_Index(Self)) - Integer(First_Index(Self))) + 1)));
+   function Length (Self : Unbound_Array) return Long_Natural
+     with Post => (if Last_Index(Self) = No_Index or else Capacity(Self) = Long_Natural'First then Length'Result = Long_Natural'First
+                     else (if First_Index(Self) > Last_Index(Self) then Length'Result = Long_Natural'First
+                     else Length'Result = Long_Natural(abs(Long_Integer(Last_Index(Self)) - Long_Integer(First_Index(Self))) + 1)));
 
    --- This function denotes if `Self` as no elements.
    ---
@@ -204,8 +209,8 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- @param Source Instance of `Unbound_Array` that is cleared at the end of `Move`.
    procedure Move (Target : in out Unbound_Array; Source : in out Unbound_Array)
      with Pre => Source.Arr /= null and then Target.Arr /= null and then Last_Index(Source) /= No_Index
-     and then Capacity(Target) > Natural'First  and then First_Index(Source) = First_Index(Target)
-     and then Ghost_In_Index_Range(Positive(Capacity(Target))) and then Last_Index(Source) <= Get_Capacity_Offset(Positive(Capacity(Target))),
+     and then Capacity(Target) > Long_Natural'First  and then First_Index(Source) = First_Index(Target)
+     and then Ghost_In_Index_Range(Long_Positive(Capacity(Target))) and then Last_Index(Source) <= Get_Capacity_Offset(Long_Positive(Capacity(Target))),
      Post => Capacity(Target) = Ghost_Arr_Length(Target.Arr.all'Old)
      and then Source.Arr = null and then Source.Last = No_Index
      and then Target.Last = Source.Last'Old and then Ghost_Arr_Equals(Left => Target.Arr.all, Right => Source.Arr.all'Old, First => First_Index(Target), Last => Last_Index(Target));
@@ -241,8 +246,9 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- @param New_Item Element that is appended to `Self` if `Success = True`.
    --- @param Success `True` if `New_Item` got appended to `Self`.
    procedure Append (Self : in out Unbound_Array; New_Item : in Element_Type; Success: out Boolean)
-     with Pre => Self.Arr /= null and then In_Range(Arg => To_Big_Integer(Capacity(Self)),
-                                                    Low => To_Big_Integer(Natural'First), High => abs(To_Big_Integer(Integer(Index_Type'Last)) - To_Big_Integer(Integer(Index_Type'First)))),
+     with Pre => Self.Arr /= null and then In_Range(Arg => Long_Natural_To_Big.To_Big_Integer(Capacity(Self)),
+                                                    Low => Long_Natural_To_Big.To_Big_Integer(Long_Natural'First), 
+                                                    High => abs(Index_Type_To_Big.To_Big_Integer(Index_Type'Last) - Index_Type_To_Big.To_Big_Integer(Index_Type'First))),
      Post => (if Success then
                 Self.Arr /= null and then Last_Element(Self) = New_Item and then Self.Last = Self.Last'Old + 1
                 and then (if Self.Last'Old /= No_Index then Ghost_Arr_Equals(Left => Self.Arr.all, Right => Self.Arr.all'Old, First => First_Index(Self), Last => Self.Last'Old))
@@ -268,9 +274,9 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- Complexity: O(1) => Only `Last_Index(Self)` is reduced.
    --- @param Self Instance of an `Unbound_Array`.
    --- @param Count Number of elements to delete.
-   procedure Delete_Last (Self : in out Unbound_Array; Count : in Positive := 1)
-     with Pre => Self.Arr /= null and then Length(Self) >= Natural(Count),
-     Post => Integer(Self.Last'Old - Self.Last) = Count
+   procedure Delete_Last (Self : in out Unbound_Array; Count : in Long_Positive := 1)
+     with Pre => Self.Arr /= null and then Length(Self) >= Long_Natural(Count),
+     Post => Long_Positive(Long_Integer(Self.Last'Old) - Long_Integer(Self.Last)) = Count
      and then (if Last_Index(Self) > No_Index then
                  Ghost_Arr_Equals(Left => Self.Arr.all, Right => Self.Arr.all'Old, First => First_Index(Self), Last => Last_Index(Self))
                else Is_Empty(Self));
@@ -296,7 +302,7 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- @param Self Instance of an `Unbound_Array`.
    --- @return The first element of `Self`.
    function First_Element (Self : Unbound_Array) return Element_Type
-     with Pre => Self.Arr /= null and then Self.Last /= No_Index and then Length(Self) > Natural'First,
+     with Pre => Self.Arr /= null and then Self.Last /= No_Index and then Length(Self) > Long_Natural'First,
      Post => First_Element'Result = Self.Arr.all(First_Index(Self));
 
    --- This function returns the last index of `Self`.
@@ -314,7 +320,7 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- @param Self Instance of an `Unbound_Array`.
    --- @return The last element of `Self`.
    function Last_Element (Self : Unbound_Array) return Element_Type
-     with Pre => Self.Arr /= null and then Last_Index(Self) > No_Index and then Length(Self) > Natural'First,
+     with Pre => Self.Arr /= null and then Last_Index(Self) > No_Index and then Length(Self) > Long_Natural'First,
      Post => Last_Element'Result = Self.Arr.all(Last_Index(Self));
 
    --- This function searches the elements of `Self` for an element equal to `Item` (using the generic formal equality operator). 
@@ -398,16 +404,17 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    -- Note: Not to be used for anything but proves
    -- @param Offset The value added to `Index_Type'First`.
    -- @return `True` if `Offset + Index_Type'First` is still inside the range of `Index_Type`, `False` otherwise.
-   function Ghost_In_Index_Range (Offset : Positive) return Boolean is
-      (In_Range(Arg => (To_Big_Integer(Integer(Index_Type'First)) + To_Big_Integer(Offset) - To_Big_Integer(Positive'First)),
-                Low => To_Big_Integer(Integer(Index_Type'First)), High => To_Big_Integer(Integer(Index_Type'Last)))) with Ghost;
+   function Ghost_In_Index_Range (Offset : Long_Positive) return Boolean is
+      (In_Range(Arg => (Index_Type_To_Big.To_Big_Integer(Index_Type'First) + Long_Positive_To_Big.To_Big_Integer(Offset) - Long_Positive_To_Big.To_Big_Integer(Long_Positive'First)),
+                Low => Index_Type_To_Big.To_Big_Integer(Index_Type'First),
+                High => Index_Type_To_Big.To_Big_Integer(Index_Type'Last))) with Ghost;
 
    
    -- Ghost function needed for some proves.
    -- Note: Not to be used for anything but proves.
-   function Ghost_Acc_Length (Self : Array_Acc) return Natural
+   function Ghost_Acc_Length (Self : Array_Acc) return Long_Natural
      with Ghost,
-     Post => ((if Self = null then Ghost_Acc_Length'Result = Natural'First else Ghost_Acc_Length'Result = Self.all'Length));
+     Post => ((if Self = null then Ghost_Acc_Length'Result = Long_Natural'First else Ghost_Acc_Length'Result = Self.all'Length));
    
    -- Ghost function needed for some proves.
    -- Note: Not to be used for anything but proves. 
@@ -419,7 +426,7 @@ package Spark_Unbound.Arrays with SPARK_Mode is
               
    -- Ghost function needed for some proves.
    -- Note: Not to be used for anything but proves.
-   function Ghost_Arr_Length (Self : Array_Type) return Natural
+   function Ghost_Arr_Length (Self : Array_Type) return Long_Natural
      with Ghost,
      Post => Ghost_Arr_Length'Result = Self'Length;
 

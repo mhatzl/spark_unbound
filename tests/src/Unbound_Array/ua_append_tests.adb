@@ -4,6 +4,7 @@ with AUnit.Assertions; use AUnit.Assertions;
 
 package body UA_Append_Tests is
 
+   use Spark_Unbound;
    
    procedure Set_Up (T : in out Test_Fixture)
    is
