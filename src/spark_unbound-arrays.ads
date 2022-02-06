@@ -276,7 +276,7 @@ package Spark_Unbound.Arrays with SPARK_Mode is
    --- @param Count Number of elements to delete.
    procedure Delete_Last (Self : in out Unbound_Array; Count : in Long_Positive := 1)
      with Pre => Self.Arr /= null and then Length(Self) >= Long_Natural(Count),
-     Post => Long_Positive(Long_Integer(Self.Last'Old) - Long_Integer(Self.Last)) = Count
+     Post => Long_Integer(Self.Last'Old) - Long_Integer(Self.Last) = Count
      and then (if Last_Index(Self) > No_Index then
                  Ghost_Arr_Equals(Left => Self.Arr.all, Right => Self.Arr.all'Old, First => First_Index(Self), Last => Last_Index(Self))
                else Is_Empty(Self));

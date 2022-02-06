@@ -9,7 +9,7 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    is
       Arr_Offset : Long_Natural := Long_Natural(Offset) - Long_Natural(Long_Positive'First);
    begin
-      return Index_Type(Long_Integer(Index_Type'First) + Long_Integer(Arr_Offset));
+      return Index_Type(Long_Integer(Index_Type'First) + Arr_Offset);
    end Get_Capacity_Offset;
       
    
@@ -213,7 +213,7 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
             Added_Capacity : Long_Natural := Capacity(Self); -- Try to double array capacity for O(Log(N))
             Ghost_Added_Capactiy : Long_Natural with Ghost;
          begin
-            while (Long_Integer(Index_Type'Last) - Long_Integer(Added_Capacity)) < Long_Integer(Get_Capacity_Offset(Long_Positive(Capacity(Self)))) and then Added_Capacity > Long_Natural'First loop
+            while (Long_Integer(Index_Type'Last) - Added_Capacity) < Long_Integer(Get_Capacity_Offset(Long_Positive(Capacity(Self)))) and then Added_Capacity > Long_Natural'First loop
                Ghost_Added_Capactiy := Added_Capacity;
                Added_Capacity := Added_Capacity - 1;
                
@@ -277,7 +277,7 @@ package body Spark_Unbound.Arrays with SPARK_Mode is
    is
    begin
       -- Actually not deleting anything, but moving values out of scope
-      Self.Last := Extended_Index(Long_Integer(Self.Last) - Long_Integer(Count));
+      Self.Last := Extended_Index(Long_Integer(Self.Last) - Count);
    end;
       
    

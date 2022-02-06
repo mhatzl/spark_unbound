@@ -14,9 +14,9 @@ So only a **Stack Overflow** might happen.
 
 Three additional types are defined in `Spark_Unbound` to allow conversion between large index ranges.
 
-1. `Long_Natural` ... Doubles positive range of `Natural`
-2. `Long_Positive` ... Doubles positive range of `Positive`
-3. `Long_Integer` ... Doubles positive and negative range of `Integer`
+1. `Long_Integer` ... Doubles the positive and negative range of `Integer`
+2. `Long_Natural` ... Subtype of `Long_Integer` that doubles the positive range of `Natural`
+3. `Long_Positive` ... Subtype of `Long_Integer` that doubles the positive range of `Positive`
 
 Conversion to `Ada.Numerics.Big_Numbers.Big_Integer` is available for all three types.
 
@@ -32,6 +32,7 @@ All procedures that might fail have a `Success` output that states if the execut
 Internally, `Unbound_Array` uses an array that is dynamically allocated and resized on the heap.
 
 **Note:** The maximum length of an `Unbound_Array` is constrained by `Spark_Unbound.Long_Natural'Range_Length` since `Capacity` and `Length` return `Spark_Unbound.Long_Natural`.
+This also means that the biggest possible index_type is `Spark_Unbound.Long_Positive` (Hint: `first = last => 1 element in array`). 
 
 **Current missing functionality:**
 
