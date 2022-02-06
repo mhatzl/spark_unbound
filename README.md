@@ -12,13 +12,15 @@ So only a **Stack Overflow** might happen.
 
 ## Added Types
 
-Three additional types are defined in `Spark_Unbound` to allow conversion between large index ranges.
+`Long_Natural` and `Long_Positive` are defined using `Long_Integer`
+in `Spark_Unbound` like `Natural` and `Positive` are defined for `Integer`.
 
-1. `Long_Integer` ... Doubles the positive and negative range of `Integer`
-2. `Long_Natural` ... Subtype of `Long_Integer` that doubles the positive range of `Natural`
-3. `Long_Positive` ... Subtype of `Long_Integer` that doubles the positive range of `Positive`
+This allows to use `Long_Natural` as return value for the array length.
 
-Conversion to `Ada.Numerics.Big_Numbers.Big_Integer` is available for all three types.
+According to the GNAT reference manual at [implementation defined characteristics](https://docs.adacore.com/gnat_rm-docs/html/gnat_rm/gnat_rm/implementation_defined_characteristics.html), `Integer` should only represent signed 32-bit even for 64-bit targets.
+Therefore, I decided to switch to `Long_Integer` as base to support 64-bit signed integers on 64-bit targets.
+
+**Note:** `Long_Integer` might still be signed 32-bit on a 64-bit target, but for most targets it should be signed 64-bit.
 
 ## Supported Data Structures
 ### Unbound_Array

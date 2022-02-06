@@ -19,14 +19,12 @@ is
       Val2 : Positive;
    end record;
 
-   type Int_Range is range Integer'First + 1 .. Integer'Last; -- +1 needed for No_Index
+   type Short_Range is range Short_Integer'First + 1 .. Short_Integer'Last; -- +1 needed for No_Index
 
-   package unbound_record is new Spark_Unbound.Arrays(Element_Type => Test_Record, Index_Type => Int_Range);
-   test_int : unbound_record.Unbound_Array := unbound_record.To_Unbound_Array(Initial_Capacity => 100);
+   package unbound_record is new Spark_Unbound.Arrays(Element_Type => Test_Record, Index_Type => Short_Range);
+   test_short : unbound_record.Unbound_Array := unbound_record.To_Unbound_Array(Initial_Capacity => 100);
 
-   type Long_Pos_Range is range 1 .. Integer'Base'Range_Length**2; -- Must start at 1. Otherwise, length might exceed Long_Natural
-
-   package pos_unbound_record is new Spark_Unbound.Arrays(Element_Type => Test_Record, Index_Type => Long_Pos_Range);
+   package pos_unbound_record is new Spark_Unbound.Arrays(Element_Type => Test_Record, Index_Type => Spark_Unbound.Long_Positive); -- Note: Long_Positive is the longest supported index range
    test_pos : pos_unbound_record.Unbound_Array := pos_unbound_record.To_Unbound_Array(Initial_Capacity => 10_000);
 
    -- Current Problem: "memory accessed through objects of access type" might not be initialized after elaboration of main program
@@ -38,7 +36,7 @@ begin
 
    unbound_int.Clear (test);
    unbound_neg_int.Clear (test_neg);
-   unbound_record.Clear (test_int);
+   unbound_record.Clear (test_short);
    pos_unbound_record.Clear (test_pos);
 
 end Prove_Unbound;

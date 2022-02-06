@@ -14,13 +14,12 @@ with Ada.Numerics.Big_Numbers.Big_Integers; use Ada.Numerics.Big_Numbers.Big_Int
 --- The source code is MIT licensed and can be found at: https://github.com/mhatzl/spark_unbound
 package Spark_Unbound with SPARK_Mode is
 
-   type Long_Integer is range -Integer'Base'Range_Length**2 .. Integer'Base'Range_Length**2;
    package Long_Integer_To_Big is new Signed_Conversions(Int => Long_Integer);
 
-   subtype Long_Natural is Long_Integer range 0 .. Integer'Base'Range_Length**2; -- creates full unsigned integer type
+   subtype Long_Natural is Long_Integer range 0 .. Long_Integer'Last;
    package Long_Natural_To_Big is new Signed_Conversions(Int => Long_Natural);
 
-   subtype Long_Positive is Long_Integer range 1 .. Long_Natural'Last;
+   subtype Long_Positive is Long_Integer range 1 .. Long_Integer'Last;
    package Long_Positive_To_Big is new Signed_Conversions(Int => Long_Positive);
 
 end Spark_Unbound;

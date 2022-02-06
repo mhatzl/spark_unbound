@@ -10,7 +10,7 @@ with Ada.Numerics.Big_Numbers.Big_Integers; use Ada.Numerics.Big_Numbers.Big_Int
 --- This is NOT enforced by the compiler!
 generic
    type Element_Type is private;
-   type Index_Type is range <>;           
+   type Index_Type is range <>;
    with function "=" (Left, Right : Element_Type) return Boolean is <>;
    --- Function used to compare elements inside `Unbound_Array`s.
    --- @param Left Element that is compared against `Right`.
